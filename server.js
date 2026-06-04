@@ -1,42 +1,41 @@
 // Memanggil library yang sudah diinstal
 require('dotenv').config();
 const express = require('express');
-const mysql = require('mysql2');
-
-const app = express();
+const mysql = require('mysql2'); // Sudah pakai mysql2 agar kebal putus
 const cors = require('cors');
 const path = require('path');
+
+const app = express();
+
 app.use(cors()); // Ini ngasih izin Web Dashboard buat narik data
+app.use(express.json()); // Middleware agar server bisa membaca data JSON dari ESP32
 
-// Middleware agar server bisa membaca data JSON dari ESP32
-app.use(express.json()); 
-
-// 1. Setup Koneksi ke Database Online
-const db = mysql.createConnection({
+// 1. Setup Koneksi ke Database Online (VERSI ANTI-TIDUR CLEVER CLOUD)
+const db = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASS,
     database: process.env.DB_NAME,
-    port: process.env.DB_PORT
+    port: process.env.DB_PORT || 3306,
+    waitForConnections: true,
+    connectionLimit: 4, // Batasi 4 agar tidak kena limit Clever Cloud
+    queueLimit: 0,
+    enableKeepAlive: true, // Paksa koneksi tetap bangun
+    keepAliveInitialDelay: 10000 // Ping database setiap 10 detik
 });
 
 // 2. Tes Koneksi Database
-db.connect((err) => {
+db.getConnection((err, connection) => {
     if (err) {
-        console.error('❌ Gagal koneksi ke database online:', err);
-        return;
+        console.error('❌ Gagal koneksi ke database online:', err.code);
+    } else {
+        console.log('✅ Berhasil terhubung ke database MySQL Clever Cloud!');
+        connection.release(); // Lepaskan koneksi agar tidak menumpuk
     }
-    console.log('✅ Berhasil terhubung ke database MySQL Clever Cloud!');
 });
-
-// 3. Endpoint Dasar (Untuk mengecek apakah server hidup)
-app.get('/', (req, res) => res.redirect('/login'));
 
 // --- SISTEM ROUTING HALAMAN WEB (URL) ---
 // Memberitahu Express lokasi folder web kita
-app.use(express.static(path.join(__dirname, 'public')));
-
-// --- SISTEM ROUTING HALAMAN WEB (URL) ---
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => res.redirect('/login'));
@@ -45,32 +44,17 @@ app.get('/dashboard', (req, res) => res.sendFile(path.join(__dirname, 'public', 
 app.get('/topup', (req, res) => res.sendFile(path.join(__dirname, 'public', 'topup.html')));
 app.get('/register', (req, res) => res.sendFile(path.join(__dirname, 'public', 'register.html')));
 app.get('/simulate', (req, res) => res.sendFile(path.join(__dirname, 'public', 'simulate.html'))); 
-// 4. Menyalakan Server
-const PORT = process.env.PORT || 3000;
-// 👇 UBAH BAGIAN PALING BAWAH INI 👇
-if (process.env.NODE_ENV !== 'production') {
-    // Berjalan normal saat dites di Localhost laptop
-    app.listen(3000, () => {
-        console.log('Server berjalan di port 3000');
-    });
-}
 
-// WAJIB DITAMBAHKAN UNTUK VERCEL: Export aplikasi agar bisa dibaca Vercel
-module.exports = app;
+// --- ENDPOINT API BACKEND ---
 
-// --- TAMBAHKAN KODE INI ---
-
-// 5. Endpoint untuk menerima data dari ESP32 (Sensor Watt & Air)
+// 3. Endpoint untuk menerima data dari ESP32 (Sensor Watt & Air)
 app.post('/api/iot/log', (req, res) => {
-    // Menangkap data JSON yang dikirim oleh ESP32 atau Web Dummy
     const { id_mesin, watt, flow_liter, status_mesin } = req.body;
 
-    // Cek apakah datanya kosong
     if (watt === undefined || flow_liter === undefined) {
         return res.status(400).json({ status: 'error', pesan: 'Data tidak lengkap!' });
     }
 
-    // Query untuk menyimpan data ke tabel tb_log_iot di Clever Cloud
     const querySQL = "INSERT INTO tb_log_iot (id_mesin, watt, flow_liter, status_mesin) VALUES (?, ?, ?, ?)";
     const dataValues = [id_mesin || 'MESIN-01', watt, flow_liter, status_mesin || 'STANDBY'];
 
@@ -89,9 +73,8 @@ app.post('/api/iot/log', (req, res) => {
     });
 });
 
-// 6. Endpoint untuk mengambil data terbaru (Untuk Web Dashboard)
+// 4. Endpoint untuk mengambil data terbaru (Untuk Web Dashboard)
 app.get('/api/iot/status', (req, res) => {
-    // Query untuk mengambil 1 baris data yang paling terakhir dicatat
     const querySQL = "SELECT * FROM tb_log_iot ORDER BY waktu_catat DESC LIMIT 1";
 
     db.query(querySQL, (err, result) => {
@@ -100,7 +83,6 @@ app.get('/api/iot/status', (req, res) => {
             return res.status(500).json({ status: 'error', pesan: 'Gagal membaca database' });
         }
 
-        // Cek apakah database kosong atau ada isinya
         if (result.length > 0) {
             res.status(200).json({ status: 'success', data: result[0] });
         } else {
@@ -109,22 +91,19 @@ app.get('/api/iot/status', (req, res) => {
     });
 });
 
-// 7. Endpoint untuk Registrasi User/Kartu Baru
+// 5. Endpoint untuk Registrasi User/Kartu Baru
 app.post('/api/user/register', (req, res) => {
     const { rfid_uid, nama_user, info_tambahan, saldo } = req.body;
 
-    // Validasi data input
     if (!rfid_uid || !nama_user) {
         return res.status(400).json({ status: 'error', pesan: 'UID Kartu dan Nama tidak boleh kosong!' });
     }
 
-    // Query untuk memasukkan data ke tabel tb_user
     const querySQL = "INSERT INTO tb_user (rfid_uid, nama_user, info_tambahan, saldo) VALUES (?, ?, ?, ?)";
     const dataValues = [rfid_uid, nama_user, info_tambahan || '', saldo || 0];
 
     db.query(querySQL, dataValues, (err, result) => {
         if (err) {
-            // Cek jika UID kartu sudah pernah didaftarkan (Duplicate Entry)
             if (err.code === 'ER_DUP_ENTRY') {
                 return res.status(400).json({ status: 'error', pesan: 'Gagal! UID Kartu ini sudah terdaftar.' });
             }
@@ -137,12 +116,11 @@ app.post('/api/user/register', (req, res) => {
     });
 });
 
-// 8. Endpoint untuk Simulasi Tap Kartu RFID dengan Hitungan per Kg
+// 6. Endpoint untuk Simulasi Tap Kartu RFID dengan Hitungan per Kg
 app.post('/api/iot/tap', (req, res) => {
     const { rfid_uid, berat_kg } = req.body;
     const HARGA_PER_KG = 7000; // Tarif Rp 7.000 per kilo
 
-    // Validasi input
     if (!rfid_uid) {
         return res.status(400).json({ status: 'ditolak', pesan: 'UID tidak terbaca' });
     }
@@ -150,10 +128,8 @@ app.post('/api/iot/tap', (req, res) => {
         return res.status(400).json({ status: 'ditolak', pesan: 'Input berat tidak valid!' });
     }
 
-    // Hitung total biaya berdasarkan berat cucian
     const BIAYA_CUCI = parseFloat(berat_kg) * HARGA_PER_KG;
 
-    // 1. Cek apakah kartu terdaftar di database
     db.query("SELECT * FROM tb_user WHERE rfid_uid = ?", [rfid_uid], (err, results) => {
         if (err) {
             console.error('❌ Error cek kartu:', err);
@@ -167,13 +143,11 @@ app.post('/api/iot/tap', (req, res) => {
 
         const user = results[0];
 
-        // 2. Cek apakah saldo cukup untuk biaya yang sudah dihitung
         if (user.saldo < BIAYA_CUCI) {
             console.log(`🚫 [DITOLAK] Saldo ${user.nama_user} kurang! Total Biaya: Rp ${BIAYA_CUCI} (Sisa Saldo: Rp ${user.saldo})`);
             return res.status(403).json({ status: 'ditolak', pesan: `Saldo kurang! Butuh Rp ${BIAYA_CUCI.toLocaleString('id-ID')}` });
         }
 
-        // 3. Saldo cukup -> Potong saldo
         const sisaSaldo = user.saldo - BIAYA_CUCI;
         
         db.query("UPDATE tb_user SET saldo = ? WHERE rfid_uid = ?", [sisaSaldo, rfid_uid], (errUpdate) => {
@@ -182,7 +156,6 @@ app.post('/api/iot/tap', (req, res) => {
                 return res.status(500).json({ status: 'error', pesan: 'Gagal memotong saldo' });
             }
 
-            // Catat riwayat ke tb_transaksi (Sekarang berat_kg dan total_biaya sudah dinamis!)
             db.query("INSERT INTO tb_transaksi (rfid_uid, berat_kg, total_biaya, status_pembayaran) VALUES (?, ?, ?, ?)",
             [rfid_uid, berat_kg, BIAYA_CUCI, 'LUNAS']);
 
@@ -198,7 +171,7 @@ app.post('/api/iot/tap', (req, res) => {
     });
 });
 
-// 9. Endpoint untuk Top-Up Saldo
+// 7. Endpoint untuk Top-Up Saldo
 app.post('/api/user/topup', (req, res) => {
     const { rfid_uid, nominal } = req.body;
 
@@ -206,7 +179,6 @@ app.post('/api/user/topup', (req, res) => {
         return res.status(400).json({ status: 'error', pesan: 'UID atau nominal tidak valid!' });
     }
 
-    // Tambahkan saldo langsung pakai query matematika MySQL
     const querySQL = "UPDATE tb_user SET saldo = saldo + ? WHERE rfid_uid = ?";
     
     db.query(querySQL, [nominal, rfid_uid], (err, result) => {
@@ -215,7 +187,6 @@ app.post('/api/user/topup', (req, res) => {
             return res.status(500).json({ status: 'error', pesan: 'Gagal memproses Top-Up' });
         }
         
-        // Cek apakah UID-nya benar-benar ada di database
         if (result.affectedRows === 0) {
             return res.status(404).json({ status: 'error', pesan: 'Kartu tidak terdaftar!' });
         }
@@ -225,9 +196,8 @@ app.post('/api/user/topup', (req, res) => {
     });
 });
 
-// 10. Endpoint untuk Menarik Data Riwayat Transaksi (Untuk Tabel Admin)
+// 8. Endpoint untuk Menarik Data Riwayat Transaksi (Untuk Tabel Admin)
 app.get('/api/transaksi', (req, res) => {
-    // Menggabungkan (JOIN) tabel transaksi dan tabel user agar namanya muncul
     const querySQL = `
         SELECT t.id_transaksi, u.nama_user, t.total_biaya, t.waktu_transaksi 
         FROM tb_transaksi t 
@@ -244,11 +214,10 @@ app.get('/api/transaksi', (req, res) => {
     });
 });
 
-// 11. Endpoint untuk Login Akun (Owner & Admin)
+// 9. Endpoint untuk Login Akun (Owner & Admin)
 app.post('/api/auth/login', (req, res) => {
     const { username, password } = req.body;
 
-    // Akun tiruan (dummy) untuk kebutuhan testing & presentasi
     if (username === 'owner' && password === 'owner123') {
         return res.status(200).json({ status: 'success', role: 'owner', nama: 'Danish (Owner)' });
     } else if (username === 'admin' && password === 'admin123') {
@@ -261,11 +230,11 @@ app.post('/api/auth/login', (req, res) => {
 // Variabel sementara untuk menyimpan UID dari ESP32
 let uidTerakhir = "";
 
-// 12. Endpoint untuk menerima tembakan UID dari ESP32 (Wokwi/Asli)
+// 10. Endpoint untuk menerima tembakan UID dari ESP32 (Wokwi/Asli)
 app.post('/api/iot/rfid_scan', (req, res) => {
     const { rfid_uid } = req.body;
     if (rfid_uid) {
-        uidTerakhir = rfid_uid; // Simpan di memori server
+        uidTerakhir = rfid_uid;
         console.log(`📶 [WOKWI] Menerima scan kartu: ${uidTerakhir}`);
         res.status(200).json({ status: 'success' });
     } else {
@@ -273,8 +242,23 @@ app.post('/api/iot/rfid_scan', (req, res) => {
     }
 });
 
-// 13. Endpoint untuk Web Simulate agar bisa 'ngintip' apakah ada kartu masuk
+// 11. Endpoint untuk Web Simulate agar bisa 'ngintip' apakah ada kartu masuk
 app.get('/api/iot/rfid_scan', (req, res) => {
     res.status(200).json({ uid: uidTerakhir });
     uidTerakhir = ""; // Langsung hapus setelah dibaca biar mesin cuci nggak nyala berulang-ulang
 });
+
+// --- MENYALAKAN SERVER ---
+
+const PORT = process.env.PORT || 3000;
+
+// Blok if ini mencegah pesan "Server berjalan" muncul error di log Vercel, 
+// tapi tetap bisa berjalan sempurna kalau kamu ngetes pakai 'node server.js' di laptop.
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`🚀 Server berjalan di port ${PORT}`);
+    });
+}
+
+// WAJIB DITAMBAHKAN UNTUK VERCEL (Harus diletakkan di paling bawah setelah semua rute/API ditulis)
+module.exports = app;
