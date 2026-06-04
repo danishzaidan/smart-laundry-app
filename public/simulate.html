@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesin Cuci - Mode User (Simulasi)</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #e2e8f0; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .machine-body { background: white; width: 400px; padding: 30px; border-radius: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border: 2px solid #cbd5e1; }
+        .lcd-screen { background: #0f172a; color: #38bdf8; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 25px; font-family: 'Courier New', Courier, monospace; border: 4px solid #334155; }
+        .lcd-status { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
+        .lcd-info { font-size: 14px; color: #94a3b8; white-space: pre-line; }
+        .led-container { display: flex; justify-content: center; gap: 20px; margin-bottom: 25px; }
+        .led { width: 20px; height: 20px; border-radius: 50%; background: #475569; border: 2px solid #334155; }
+        .led.merah.nyala { background: #ef4444; box-shadow: 0 0 15px #ef4444; }
+        .led.hijau.nyala { background: #10b981; box-shadow: 0 0 15px #10b981; }
+        .rfid-area { border: 2px dashed #94a3b8; padding: 20px; border-radius: 10px; text-align: center; background: #f8fafc; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; text-align: center; font-size: 18px; font-weight: bold; }
+        .btn-tap { width: 100%; padding: 15px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-stop { width: 100%; padding: 15px; background: #ef4444; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; display: none; }
+        /* --- CODE TAMBAHAN UNTUK LAYAR SIMULATOR DI HP --- */
+        @media (max-width: 768px) {
+            body { padding: 15px; box-sizing: border-box; }
+            .machine-body { width: 100%; max-width: 100%; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="machine-body">
+        <h3 style="text-align: center; color: #475569; margin-top: 0;">SMART LAUNDRY (MESIN-01)</h3>
+        <div class="led-container">
+            <div id="ledMerah" class="led merah nyala"></div>
+            <div id="ledHijau" class="led hijau"></div>
+        </div>
+        <div class="lcd-screen">
+            <div id="lcdText" class="lcd-status">SILAKAN TAP<br>KARTU ANDA</div>
+            <div id="lcdSub" class="lcd-info">Tarif: Rp 7.000 / Kg</div>
+        </div>
+        <div class="rfid-area" id="rfidArea">
+            <label style="font-weight: bold; color: #64748b; display: block; font-size: 14px;">🔑 UID Kartu</label>
+            <input type="text" id="uidInput" value="99AA88BB">
+            
+            <label style="font-weight: bold; color: #64748b; display: block; margin-top: 15px; font-size: 14px;">⚖️ Berat Cucian (Kg)</label>
+            <input type="number" id="beratInput" value="3.0" min="0.5" step="0.1">
+            
+            <button class="btn-tap" onclick="simulasikanTap()">TAP KARTU SEKARANG</button>
+        </div>
+        <button id="btnStop" class="btn-stop" onclick="hentikanMesin()">SELESAI MENCUCI (STOP)</button>
+    </div>
+
+    <script>
+        let intervalMesin = null;
+
+	// RADAR PENANGKAP SINYAL WOKWI
+        setInterval(async () => {
+            // Jangan mengecek kalau layar sedang menampilkan "MEMPROSES" atau Mesin sudah nyala
+            if (document.getElementById('rfidArea').style.display === 'none') return; 
+            
+            try {
+                const res = await fetch('/api/iot/rfid_scan');
+                const result = await res.json();
+                
+                // Jika ada UID yang ditangkap dari server
+                if (result.uid && result.uid !== "") {
+                    // Isi form secara otomatis
+                    document.getElementById('uidInput').value = result.uid;
+                    // Tekan tombol secara virtual!
+                    simulasikanTap(); 
+                }
+            } catch(e) {}
+        }, 1000); // Mengecek setiap 1 detik
+
+        async function simulasikanTap() {
+            const uid = document.getElementById('uidInput').value.trim();
+            const berat = document.getElementById('beratInput').value.trim();
+            const lcdText = document.getElementById('lcdText');
+            const lcdSub = document.getElementById('lcdSub');
+            
+            if(!berat || berat <= 0) { alert("Masukkan berat cucian!"); return; }
+
+            lcdText.innerText = "MEMPROSES...";
+            lcdSub.innerText = "Menghitung...";
+
+            try {
+                const res = await fetch('/api/iot/tap', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rfid_uid: uid, berat_kg: berat })
+                });
+                
+                const result = await res.json();
+
+                if (res.status === 200) {
+                    lcdText.innerText = "MESIN MENYALA";
+                    lcdText.style.color = "#10b981";
+                    lcdSub.innerText = `Biaya: Rp ${result.total_biaya.toLocaleString('id-ID')}\nSisa: Rp ${result.sisa_saldo.toLocaleString('id-ID')}`;
+                    
+                    document.getElementById('ledMerah').classList.remove('nyala');
+                    document.getElementById('ledHijau').classList.add('nyala');
+                    document.getElementById('rfidArea').style.display = 'none';
+                    document.getElementById('btnStop').style.display = 'block';
+
+                    jalankanSensorVirtual();
+                } else {
+                    lcdText.innerText = "AKSES DITOLAK";
+                    lcdText.style.color = "#ef4444";
+                    lcdSub.innerText = result.pesan;
+                    setTimeout(resetLayar, 4000);
+                }
+            } catch (err) {
+                // INI AKAN MENAMPILKAN ERROR ASLINYA DI LAYAR
+                lcdText.innerText = "ERROR SERVER!";
+                lcdSub.innerText = "Cek terminal Node.js\ndi VS Code kamu.";
+                console.error("Detail Error:", err);
+            }
+        }
+
+        function jalankanSensorVirtual() {
+            intervalMesin = setInterval(() => {
+                fetch('/api/iot/log', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id_mesin: 'MESIN-01', watt: (200 + Math.random() * 50).toFixed(2), flow_liter: (10 + Math.random() * 5).toFixed(2), status_mesin: 'MENCUCI' })
+                });
+            }, 2000);
+        }
+
+        function hentikanMesin() {
+            clearInterval(intervalMesin);
+            fetch('/api/iot/log', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_mesin: 'MESIN-01', watt: 0, flow_liter: 0, status_mesin: 'STANDBY' })
+            });
+            resetLayar();
+        }
+
+        function resetLayar() {
+            const lcdText = document.getElementById('lcdText');
+            lcdText.innerText = "SILAKAN TAP\nKARTU ANDA";
+            lcdText.style.color = "#38bdf8";
+            document.getElementById('lcdSub').innerText = "Tarif: Rp 7.000 / Kg";
+            document.getElementById('ledMerah').classList.add('nyala');
+            document.getElementById('ledHijau').classList.remove('nyala');
+            document.getElementById('rfidArea').style.display = 'block';
+            document.getElementById('btnStop').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

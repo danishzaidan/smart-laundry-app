@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Owner - Smart Laundry</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb; --primary-dark: #1d4ed8; --bg: #f8fafc;
+            --card: #ffffff; --text-main: #1e293b; --text-sub: #64748b;
+            --success: #10b981; --danger: #ef4444; --sidebar: #0f172a;
+        }
+
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            background-color: var(--bg); 
+            color: var(--text-main); 
+            margin: 0; 
+            display: flex; 
+            height: 100vh; 
+            overflow: hidden; 
+        }
+        
+        /* --- SIDEBAR STYLE --- */
+        .sidebar { 
+            width: 260px; box-sizing: border-box; background-color: var(--sidebar); color: white; 
+            padding: 25px 15px; display: flex; flex-direction: column; flex-shrink: 0; 
+            transition: margin-left 0.3s ease, left 0.3s ease; position: relative; z-index: 1000;
+        }
+        .sidebar.hide-desktop { margin-left: -260px; }
+
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .sidebar-header h2 { color: #38bdf8; margin: 0; font-size: 22px; }
+        .close-sidebar-btn { background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; display: none; }
+
+        .user-profile { background: #1e293b; padding: 12px; border-radius: 8px; margin-bottom: 25px; }
+        
+        .sidebar-btn {
+            background: none; border: none; color: #94a3b8; padding: 12px 15px;
+            text-align: left; width: 100%; font-size: 15px; font-weight: 600;
+            cursor: pointer; border-radius: 8px; margin-bottom: 8px; transition: 0.2s;
+        }
+        .sidebar-btn:hover, .sidebar-btn.active { background-color: #1e293b; color: white; border-left: 4px solid #38bdf8; }
+        .logout-btn { margin-top: auto; background: #27272a; color: var(--danger); border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+
+        /* --- CONTENT STYLE --- */
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; box-sizing: border-box; width: 100%; transition: all 0.3s ease; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        
+        .menu-btn {
+            background: #ffffff; border: 1px solid #cbd5e1; color: #1e293b; font-size: 24px;
+            cursor: pointer; padding: 6px 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0; transition: 0.2s;
+        }
+        .menu-btn:hover { background: #f1f5f9; }
+
+        .card { background: var(--card); padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        
+        .val-large { font-size: 48px; font-weight: 800; color: var(--primary); margin: 10px 0; }
+        .unit { font-size: 20px; color: var(--text-sub); font-weight: normal; }
+        .badge { padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 14px; }
+        .bg-success { background: #d1fae5; color: var(--success); }
+        .bg-danger { background: #fee2e2; color: var(--danger); }
+
+        /* --- MOBILE --- */
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; height: 100vh; left: -260px; margin-left: 0; top: 0; }
+            .sidebar.show-mobile { left: 0; box-shadow: 10px 0 20px rgba(0,0,0,0.5); }
+            .close-sidebar-btn { display: block; }
+            .main-content { padding: 15px; }
+            .grid-2 { grid-template-columns: 1fr; gap: 15px; }
+            .header { align-items: flex-start; }
+            .val-large { font-size: 36px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>🌀 Smart Laundry</h2>
+            <button class="close-sidebar-btn" onclick="toggleSidebar()">✖</button>
+        </div>
+        <div class="user-profile">
+            <div style="color: #94a3b8; font-size: 12px;">OWNER :</div>
+            <div id="profileName" style="font-weight: bold; color: white;">Danish (Owner)</div>
+        </div>
+        
+        <button class="sidebar-btn active" id="btnMonitoring" onclick="switchTab('monitoring')">📈 Monitoring Real-time</button>
+        <button class="sidebar-btn" id="btnReport" onclick="switchTab('report')">💸 Laporan Pengeluaran</button>
+        
+        <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+    </div>
+
+    <div class="main-content">
+        
+        <div id="monitoring-tab">
+            <div class="header">
+                <div class="header-left">
+                    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+                    <div>
+                        <h1 style="margin:0; font-size: 24px;">Dashboard Monitoring</h1>
+                        <p style="color: var(--text-sub); margin: 5px 0 0 0; font-size: 14px;">Pantau status mesin cuci secara langsung</p>
+                    </div>
+                </div>
+                <div id="statusBadge" class="badge bg-danger">MESIN STANDBY</div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div style="font-weight: 600; color: var(--text-sub);">⚡ KONSUMSI DAYA SAAT INI</div>
+                    <div class="val-large"><span id="wattVal">0.00</span> <span class="unit">W</span></div>
+                    <div style="border-top: 1px solid #eee; padding-top: 10px; color: var(--text-sub);">Akumulasi: <strong id="kwhVal">0.0000</strong> kWh</div>
+                </div>
+                <div class="card">
+                    <div style="font-weight: 600; color: var(--text-sub);">💧 DEBIT AIR SAAT INI</div>
+                    <div class="val-large"><span id="flowVal">0.00</span> <span class="unit">L/m</span></div>
+                    <div style="border-top: 1px solid #eee; padding-top: 10px; color: var(--text-sub);">Akumulasi: <strong id="totalAirVal">0</strong> Liter</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-top:0; color: var(--text-sub);">Grafik Penggunaan Listrik (Real-time)</h3>
+                <canvas id="powerChart" height="100"></canvas>
+            </div>
+        </div>
+
+        <div id="report-tab" style="display: none;">
+            <div class="header">
+                <div class="header-left">
+                    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+                    <div>
+                        <h1 style="margin:0; font-size: 24px;">Estimasi Pengeluaran</h1>
+                        <p style="color: var(--text-sub); margin: 5px 0 0 0; font-size: 14px;">Akumulasi biaya listrik dan air yang dikonversi ke Rupiah</p>
+                    </div>
+                </div>
+                <button class="badge bg-danger" style="border: none; cursor:pointer;" onclick="resetAkumulasi()">🔄 Reset Data</button>
+            </div>
+
+            <div class="grid-2">
+                <div class="card" style="border-left: 5px solid #f59e0b;">
+                    <div style="font-weight: 600; color: var(--text-sub);">💡 BIAYA LISTRIK BERJALAN</div>
+                    <div class="val-large" style="color: #f59e0b; font-size: 38px;" id="rupiahListrik">Rp 0</div>
+                    <div style="border-top: 1px solid #eee; padding-top: 10px; color: var(--text-sub);">Total Pemakaian: <strong id="lapKwh">0.0000</strong> kWh</div>
+                    <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">*Menggunakan acuan Tarif Dasar Listrik (TDL): Rp 1.500 / kWh</div>
+                </div>
+                
+                <div class="card" style="border-left: 5px solid #0ea5e9;">
+                    <div style="font-weight: 600; color: var(--text-sub);">🚰 BIAYA AIR BERJALAN</div>
+                    <div class="val-large" style="color: #0ea5e9; font-size: 38px;" id="rupiahAir">Rp 0</div>
+                    <div style="border-top: 1px solid #eee; padding-top: 10px; color: var(--text-sub);">Total Pemakaian: <strong id="lapAir">0</strong> Liter</div>
+                    <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">*Menggunakan acuan PDAM: Rp 8.000 / m³ (Rp 8 / Liter)</div>
+                </div>
+            </div>
+
+            <div class="card" style="background: #1e293b; color: white; border: 1px solid #334155;">
+                <div style="font-weight: 600; color: #94a3b8;">💰 TOTAL PENGELUARAN (LISTRIK + AIR)</div>
+                <div class="val-large" style="color: #10b981; font-size: 48px;" id="rupiahTotal">Rp 0</div>
+                <p style="color: #cbd5e1; margin-bottom: 0;">Ini adalah estimasi pengeluaran modal operasional untuk 1 unit mesin cuci berdasarkan total waktu menyala dan air yang mengalir.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // KEAMANAN & LOGOUT
+        const role = localStorage.getItem('role');
+        if (role !== 'owner') { window.location.href = '/login'; }
+        function logout() { localStorage.clear(); window.location.href = '/login'; }
+
+        // ANIMASI SIDEBAR & TAB
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            if (window.innerWidth <= 768) { sidebar.classList.toggle('show-mobile'); } 
+            else { sidebar.classList.toggle('hide-desktop'); }
+        }
+
+        function switchTab(tabId) {
+            document.getElementById('monitoring-tab').style.display = tabId === 'monitoring' ? 'block' : 'none';
+            document.getElementById('report-tab').style.display = tabId === 'report' ? 'block' : 'none';
+            document.getElementById('btnMonitoring').classList.toggle('active', tabId === 'monitoring');
+            document.getElementById('btnReport').classList.toggle('active', tabId === 'report');
+            if (window.innerWidth <= 768) document.querySelector('.sidebar').classList.remove('show-mobile');
+        }
+
+        // KONFIGURASI TARIF (Bisa disesuaikan)
+        const TARIF_LISTRIK_KWH = 1500; // Rp 1.500 per kWh
+        const TARIF_AIR_LITER = 8;      // Rp 8 per Liter (atau Rp 8.000 / m3)
+
+        // AMBIL DATA AKUMULASI DARI LOCAL STORAGE (Agar tidak hilang saat di-refresh)
+        let totalKwh = parseFloat(localStorage.getItem('savedKwh')) || 0;
+        let totalLiter = parseFloat(localStorage.getItem('savedLiter')) || 0;
+
+        function formatRupiah(angka) {
+            return 'Rp ' + Math.floor(angka).toLocaleString('id-ID');
+        }
+
+        // Fungsi Update Layar Pengeluaran
+        function updateLaporanUI() {
+            // Hitung Biaya
+            const biayaListrik = totalKwh * TARIF_LISTRIK_KWH;
+            const biayaAir = totalLiter * TARIF_AIR_LITER;
+            const totalBiaya = biayaListrik + biayaAir;
+
+            // Update Angka di Layar Report
+            document.getElementById('lapKwh').innerText = totalKwh.toFixed(4);
+            document.getElementById('rupiahListrik').innerText = formatRupiah(biayaListrik);
+            document.getElementById('lapAir').innerText = Math.floor(totalLiter);
+            document.getElementById('rupiahAir').innerText = formatRupiah(biayaAir);
+            document.getElementById('rupiahTotal').innerText = formatRupiah(totalBiaya);
+
+            // Update Angka di Layar Monitoring
+            document.getElementById('kwhVal').innerText = totalKwh.toFixed(4);
+            document.getElementById('totalAirVal').innerText = Math.floor(totalLiter);
+        }
+
+        // Panggil sekali saat web pertama dibuka
+        updateLaporanUI();
+
+        // Fitur Reset Data jika sudah berganti bulan
+        function resetAkumulasi() {
+            if(confirm("Apakah Anda yakin ingin me-reset (menghapus) data tagihan bulan ini kembali ke 0?")) {
+                totalKwh = 0; totalLiter = 0;
+                localStorage.setItem('savedKwh', 0);
+                localStorage.setItem('savedLiter', 0);
+                updateLaporanUI();
+                alert("Data berhasil direset!");
+            }
+        }
+
+        // KONFIGURASI GRAFIK
+        const ctx = document.getElementById('powerChart').getContext('2d');
+        const powerChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['', '', '', '', '', '', '', '', '', ''],
+                datasets: [{ label: 'Watt', data: [0,0,0,0,0,0,0,0,0,0], borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', fill: true, tension: 0.4 }]
+            },
+            options: { responsive: true, animation: { duration: 0 } }
+        });
+
+        // TARIK DATA DARI SENSOR (Setiap 2 Detik)
+        setInterval(async () => {
+            try {
+                const res = await fetch('/api/iot/status');
+                const result = await res.json();
+                if (result.status === 'success') {
+                    const data = result.data;
+                    document.getElementById('wattVal').innerText = data.watt;
+                    document.getElementById('flowVal').innerText = data.flow_liter;
+                    
+                    const badge = document.getElementById('statusBadge');
+                    if(data.status_mesin === 'MENCUCI') {
+                        badge.className = 'badge bg-success'; badge.innerText = 'SEDANG MENCUCI';
+                        
+                        // Menambah jumlah akumulasi
+                        totalKwh += (parseFloat(data.watt) / 1000) / 1800;
+                        totalLiter += parseFloat(data.flow_liter) / 30;
+
+                        // Simpan langsung ke memori komputer/HP agar tidak hilang
+                        localStorage.setItem('savedKwh', totalKwh);
+                        localStorage.setItem('savedLiter', totalLiter);
+                        
+                        updateLaporanUI(); // Update UI angka Rupiahnya
+                    } else {
+                        badge.className = 'badge bg-danger'; badge.innerText = 'MESIN STANDBY';
+                    }
+
+                    // Update Chart
+                    const now = new Date().toLocaleTimeString();
+                    powerChart.data.labels.push(now); powerChart.data.labels.shift();
+                    powerChart.data.datasets[0].data.push(data.watt); powerChart.data.datasets[0].data.shift();
+                    powerChart.update();
+                }
+            } catch (e) { console.log("Gagal tarik data API"); }
+        }, 2000);
+    </script>
+</body>
+</html>

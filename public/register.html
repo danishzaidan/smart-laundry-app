@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrasi Kartu - Smart Laundry</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: #f8fafc; 
+            margin: 0; 
+            display: flex; 
+            height: 100vh; 
+            overflow: hidden; /* Mencegah double scroll saat animasi */
+        }
+        
+        /* --- GAYA SIDEBAR --- */
+        .sidebar { 
+            width: 260px; 
+            box-sizing: border-box; 
+            background: #0f172a; 
+            color: white; 
+            padding: 25px 15px; 
+            display: flex; 
+            flex-direction: column; 
+            flex-shrink: 0;
+            transition: margin-left 0.3s ease, left 0.3s ease;
+            position: relative;
+            z-index: 1000;
+        }
+
+        /* Mode Desktop: Sembunyikan sidebar ke kiri */
+        .sidebar.hide-desktop { margin-left: -260px; }
+
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .sidebar-header h2 { margin: 0; color: #38bdf8; font-size: 22px; }
+        
+        /* Tombol silang untuk HP */
+        .close-sidebar-btn { background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; display: none; }
+
+        .user-info { background: #1e293b; padding: 12px; border-radius: 8px; margin-bottom: 25px; font-size: 14px; }
+        
+        /* Tombol di dalam sidebar (Diubah jadi sidebar-btn agar tidak bentrok) */
+        .sidebar-btn { 
+            width: 100%; padding: 12px 15px; margin-bottom: 10px; background: transparent; color: white; 
+            border: 1px solid #334155; border-radius: 8px; text-align: left; cursor: pointer; font-size: 15px; font-weight: 600;
+        }
+        .sidebar-btn:hover, .sidebar-btn.active { background: #1e293b; border-color: #38bdf8; border-left: 4px solid #38bdf8; }
+        .logout-btn { margin-top: auto; background: #ef4444; border: none; font-weight: bold; }
+        
+        /* --- GAYA KONTEN UTAMA --- */
+        .content { flex: 1; padding: 30px; overflow-y: auto; color: #1e293b; transition: all 0.3s ease; box-sizing: border-box; width: 100%; }
+        
+        /* Header untuk membungkus Garis Tiga & Judul */
+        .header { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; }
+        .header h2 { margin: 0; font-size: 24px; }
+
+        /* Tombol Garis Tiga (Hamburger) */
+        .menu-btn {
+            background: #ffffff; border: 1px solid #cbd5e1; color: #1e293b; font-size: 24px;
+            cursor: pointer; padding: 6px 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            flex-shrink: 0; transition: 0.2s;
+        }
+        .menu-btn:hover { background: #f1f5f9; }
+
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .grid-1-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; } /* Diubah jadi 1fr 1fr agar seimbang */
+        
+        input { width: 100%; padding: 12px; margin: 8px 0 15px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 15px;}
+        .btn-submit { width: 100%; padding: 14px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; }
+        .btn-submit:hover { background: #1d4ed8; }
+        
+        .panduan-list p { color: #475569; margin-bottom: 12px; line-height: 1.6; }
+
+        /* --- MODE LAYAR HP (MOBILE) --- */
+        @media (max-width: 768px) {
+            .sidebar { 
+                position: fixed; height: 100vh; left: -260px; margin-left: 0; top: 0;
+            }
+            .sidebar.show-mobile { left: 0; box-shadow: 10px 0 20px rgba(0,0,0,0.5); }
+            .close-sidebar-btn { display: block; }
+            
+            .content { padding: 15px; }
+            .grid-1-2 { grid-template-columns: 1fr; gap: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>🌀 Laundry</h2>
+            <button class="close-sidebar-btn" onclick="toggleSidebar()">✖</button>
+        </div>
+        <div class="user-info">
+            <span style="color: #94a3b8;">Kasir Aktif:</span><br>
+            <b id="namaUser" style="color: #38bdf8; font-size: 16px;">-</b>
+        </div>
+        <button class="sidebar-btn" onclick="window.location.href='/topup'">💳 Kasir & Top-Up</button>
+        <button class="sidebar-btn active" onclick="window.location.href='/register'">👤 Registrasi Kartu</button>
+        <button class="sidebar-btn logout-btn" onclick="logout()">🚪 Logout</button>
+    </div>
+
+    <div class="content">
+        <div class="header">
+            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+            <h2>Registrasi Pelanggan Baru</h2>
+        </div>
+        
+        <div class="grid-1-2">
+            <div class="card">
+                <h3 style="margin-top: 0; color: #1e293b;">📝 Daftar Kartu Baru</h3>
+                <div id="msgBox" style="padding: 12px; border-radius: 8px; display: none; margin-bottom: 15px; font-weight: bold; text-align: center;"></div>
+                <form id="registerForm">
+                    <label style="font-weight: 600; color: #475569;">UID Kartu RFID</label>
+                    <input type="text" id="uid" placeholder="Contoh: A1B2C3D4" required>
+                    
+                    <label style="font-weight: 600; color: #475569;">Nama Lengkap Pelanggan</label>
+                    <input type="text" id="namaPelanggan" placeholder="Masukkan nama pelanggan" required>
+                    
+                    <button type="submit" class="btn-submit">DAFTARKAN KARTU</button>
+                </form>
+            </div>
+            
+            <div class="card panduan-list">
+                <h3 style="margin-top: 0; color: #1e293b;">📌 Panduan Pendaftaran</h3>
+                <p><b>1.</b> Tap kartu kosong pada alat pemindai (Hardware / Simulator) untuk mendapatkan kode UID.</p>
+                <p><b>2.</b> Masukkan kode UID tersebut ke dalam kolom yang tersedia.</p>
+                <p><b>3.</b> Ketikkan nama lengkap pelanggan yang akan menggunakan kartu ini.</p>
+                <p><b>4.</b> Klik tombol <b>DAFTARKAN KARTU</b>.</p>
+                <div style="background: #fffbeb; padding: 10px; border-left: 4px solid #f59e0b; border-radius: 4px; margin-top: 15px;">
+                    <b style="color: #b45309;">Penting:</b> Saldo awal kartu baru adalah Rp 0. Harap arahkan pelanggan untuk mengisi saldo di menu <b>Kasir & Top-Up</b> setelah kartu berhasil didaftarkan.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // SISTEM KEAMANAN & SESI
+        const role = localStorage.getItem('role');
+        if (role !== 'admin') { window.location.href = '/login'; } 
+        else { document.getElementById('namaUser').innerText = localStorage.getItem('nama'); }
+
+        function logout() { localStorage.clear(); window.location.href = '/login'; }
+
+        // FUNGSI ANIMASI SIDEBAR
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('show-mobile'); // Mode HP
+            } else {
+                sidebar.classList.toggle('hide-desktop'); // Mode Laptop
+            }
+        }
+
+        // FUNGSI SUBMIT PENDAFTARAN KARTU
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const rfid_uid = document.getElementById('uid').value;
+            const nama_user = document.getElementById('namaPelanggan').value;
+            const msg = document.getElementById('msgBox');
+            
+            try {
+                // Tembak API Register di server
+                const res = await fetch('/api/user/register', {
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rfid_uid, nama_user })
+                });
+                const result = await res.json();
+                
+                msg.style.display = 'block';
+                if (res.status === 200 || res.status === 201) {
+                    msg.style.background = '#d1fae5'; 
+                    msg.style.color = '#10b981'; 
+                    msg.innerText = result.pesan || "Pendaftaran Berhasil!";
+                    // Kosongkan form setelah sukses
+                    document.getElementById('uid').value = ''; 
+                    document.getElementById('namaPelanggan').value = ''; 
+                } else {
+                    msg.style.background = '#fee2e2'; 
+                    msg.style.color = '#ef4444'; 
+                    msg.innerText = result.pesan || "Gagal mendaftarkan kartu!";
+                }
+                setTimeout(() => msg.style.display = 'none', 3000);
+            } catch (e) {
+                msg.style.display = 'block';
+                msg.style.background = '#fee2e2'; 
+                msg.style.color = '#ef4444'; 
+                msg.innerText = "Error Jaringan Server!";
+                setTimeout(() => msg.style.display = 'none', 3000);
+            }
+        });
+    </script>
+</body>
+</html>

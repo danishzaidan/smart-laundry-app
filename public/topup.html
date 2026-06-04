@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kasir & Top-Up - Smart Laundry</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: #f8fafc; 
+            margin: 0; 
+            display: flex; 
+            height: 100vh; 
+            overflow: hidden; /* Mencegah double scroll saat animasi */
+        }
+        
+        /* --- GAYA SIDEBAR --- */
+        .sidebar { 
+            width: 260px; 
+            box-sizing: border-box; 
+            background: #0f172a; 
+            color: white; 
+            padding: 25px 15px; 
+            display: flex; 
+            flex-direction: column; 
+            flex-shrink: 0;
+            transition: margin-left 0.3s ease, left 0.3s ease;
+            position: relative;
+            z-index: 1000;
+        }
+
+        /* Mode Desktop: Sembunyikan sidebar ke kiri */
+        .sidebar.hide-desktop { margin-left: -260px; }
+
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .sidebar-header h2 { margin: 0; color: #38bdf8; font-size: 22px; }
+        
+        /* Tombol silang untuk HP */
+        .close-sidebar-btn { background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; display: none; }
+
+        .user-info { background: #1e293b; padding: 12px; border-radius: 8px; margin-bottom: 25px; font-size: 14px; }
+        
+        /* Tombol di dalam sidebar (Diubah jadi sidebar-btn agar tidak bentrok) */
+        .sidebar-btn { 
+            width: 100%; padding: 12px 15px; margin-bottom: 10px; background: transparent; color: white; 
+            border: 1px solid #334155; border-radius: 8px; text-align: left; cursor: pointer; font-size: 15px; font-weight: 600;
+        }
+        .sidebar-btn:hover, .sidebar-btn.active { background: #1e293b; border-color: #38bdf8; border-left: 4px solid #38bdf8; }
+        .logout-btn { margin-top: auto; background: #ef4444; border: none; font-weight: bold; }
+        
+        /* --- GAYA KONTEN UTAMA --- */
+        .content { flex: 1; padding: 30px; overflow-y: auto; color: #1e293b; transition: all 0.3s ease; box-sizing: border-box; width: 100%; }
+        
+        /* Header untuk membungkus Garis Tiga & Judul */
+        .header { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; }
+        .header h2 { margin: 0; font-size: 24px; }
+
+        /* Tombol Garis Tiga (Hamburger) */
+        .menu-btn {
+            background: #ffffff; border: 1px solid #cbd5e1; color: #1e293b; font-size: 24px;
+            cursor: pointer; padding: 6px 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            flex-shrink: 0; transition: 0.2s;
+        }
+        .menu-btn:hover { background: #f1f5f9; }
+
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .grid-1-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        
+        input { width: 100%; padding: 12px; margin: 8px 0 15px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 15px;}
+        .btn-submit { width: 100%; padding: 14px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; }
+        .btn-submit:hover { background: #059669; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; font-weight: 600; color: #475569;}
+
+        /* --- MODE LAYAR HP (MOBILE) --- */
+        @media (max-width: 768px) {
+            .sidebar { 
+                position: fixed; height: 100vh; left: -260px; margin-left: 0; top: 0;
+            }
+            .sidebar.show-mobile { left: 0; box-shadow: 10px 0 20px rgba(0,0,0,0.5); }
+            .close-sidebar-btn { display: block; }
+            
+            .content { padding: 15px; }
+            .grid-1-2 { grid-template-columns: 1fr; gap: 15px; }
+            
+            /* Agar tabel bisa digeser/swipe kalau layar kekecilan */
+            .table-container { overflow-x: auto; }
+            table { min-width: 500px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>🌀 Laundry</h2>
+            <button class="close-sidebar-btn" onclick="toggleSidebar()">✖</button>
+        </div>
+        <div class="user-info">
+            <span style="color: #94a3b8;">Kasir Aktif:</span><br>
+            <b id="namaUser" style="color: #38bdf8; font-size: 16px;">-</b>
+        </div>
+        <button class="sidebar-btn active" onclick="window.location.href='/topup'">💳 Kasir & Top-Up</button>
+        <button class="sidebar-btn" onclick="window.location.href='/register'">👤 Registrasi Kartu</button>
+        <button class="sidebar-btn logout-btn" onclick="logout()">🚪 Logout</button>
+    </div>
+
+    <div class="content">
+        <div class="header">
+            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+            <h2>Dashboard Operasional Kasir</h2>
+        </div>
+        
+        <div class="grid-1-2">
+            <div class="card">
+                <h3 style="margin-top: 0; color: #1e293b;">💳 Isi Saldo</h3>
+                <div id="msgBox" style="padding: 12px; border-radius: 8px; display: none; margin-bottom: 15px; font-weight: bold; text-align: center;"></div>
+                <form id="topupForm">
+                    <label style="font-weight: 600; color: #475569;">UID Kartu RFID</label>
+                    <input type="text" id="uid" placeholder="Contoh: A1B2C3D4" required>
+                    
+                    <label style="font-weight: 600; color: #475569;">Nominal (Rp)</label>
+                    <input type="number" id="nominal" placeholder="Contoh: 50000" required>
+                    
+                    <button type="submit" class="btn-submit">PROSES TOP-UP</button>
+                </form>
+            </div>
+            
+            <div class="card">
+                <h3 style="margin-top: 0; color: #1e293b;">📜 Riwayat Transaksi</h3>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>ID</th><th>Nama User</th><th>Biaya</th><th>Waktu</th></tr></thead>
+                        <tbody id="tabelRiwayat"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // SISTEM KEAMANAN & SESI
+        const role = localStorage.getItem('role');
+        if (role !== 'admin') { window.location.href = '/login'; } 
+        else { document.getElementById('namaUser').innerText = localStorage.getItem('nama'); }
+
+        function logout() { localStorage.clear(); window.location.href = '/login'; }
+
+        // FUNGSI ANIMASI SIDEBAR
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('show-mobile'); // Mode HP
+            } else {
+                sidebar.classList.toggle('hide-desktop'); // Mode Laptop
+            }
+        }
+
+        // FUNGSI TOP UP & RIWAYAT
+        async function loadRiwayat() {
+            try {
+                const res = await fetch('/api/transaksi');
+                const result = await res.json();
+                if (result.status === 'success') {
+                    const tbody = document.getElementById('tabelRiwayat'); tbody.innerHTML = '';
+                    result.data.forEach(trx => {
+                        tbody.innerHTML += `<tr>
+                            <td style="color: #64748b;">#${trx.id_transaksi}</td>
+                            <td><b>${trx.nama_user}</b></td>
+                            <td style="color: #ef4444; font-weight: bold;">- Rp ${trx.total_biaya.toLocaleString('id-ID')}</td>
+                            <td style="color: #64748b;">${new Date(trx.waktu_transaksi).toLocaleString('id-ID')}</td>
+                        </tr>`;
+                    });
+                }
+            } catch (e) { console.log("Gagal memuat riwayat"); }
+        }
+
+        document.getElementById('topupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const rfid_uid = document.getElementById('uid').value;
+            const nominal = parseInt(document.getElementById('nominal').value);
+            const msg = document.getElementById('msgBox');
+            
+            try {
+                const res = await fetch('/api/user/topup', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rfid_uid, nominal })
+                });
+                const result = await res.json();
+                
+                msg.style.display = 'block';
+                if (res.status === 200) {
+                    msg.style.background = '#d1fae5'; msg.style.color = '#10b981'; msg.innerText = result.pesan;
+                    document.getElementById('nominal').value = ''; 
+                    loadRiwayat(); // Refresh tabel setelah topup sukses
+                } else {
+                    msg.style.background = '#fee2e2'; msg.style.color = '#ef4444'; msg.innerText = result.pesan;
+                }
+                setTimeout(() => msg.style.display = 'none', 3000);
+            } catch (e) {
+                msg.style.display = 'block';
+                msg.style.background = '#fee2e2'; msg.style.color = '#ef4444'; msg.innerText = "Error Jaringan Server!";
+                setTimeout(() => msg.style.display = 'none', 3000);
+            }
+        });
+
+        // Muat data tabel saat halaman pertama dibuka, lalu update tiap 5 detik
+        loadRiwayat();
+        setInterval(loadRiwayat, 5000);
+    </script>
+</body>
+</html>
