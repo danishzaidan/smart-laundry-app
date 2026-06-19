@@ -16,12 +16,17 @@
         .led.hijau.nyala { background: #10b981; box-shadow: 0 0 15px #10b981; }
         .rfid-area { border: 2px dashed #94a3b8; padding: 20px; border-radius: 10px; text-align: center; background: #f8fafc; }
         input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; text-align: center; font-size: 18px; font-weight: bold; }
-        .btn-tap { width: 100%; padding: 15px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-stop { width: 100%; padding: 15px; background: #ef4444; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; display: none; }
         /* --- CODE TAMBAHAN UNTUK LAYAR SIMULATOR DI HP --- */
         @media (max-width: 768px) {
             body { padding: 15px; box-sizing: border-box; }
             .machine-body { width: 100%; max-width: 100%; padding: 20px; }
+        }
+        .waiting-text { color: #2563eb; font-weight: bold; font-size: 14px; animation: pulse 1.5s infinite; }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
         }
     </style>
 </head>
@@ -37,22 +42,21 @@
             <div id="lcdText" class="lcd-status">SILAKAN TAP<br>KARTU ANDA</div>
             <div id="lcdSub" class="lcd-info">Tarif: Rp 7.000 / Kg</div>
         </div>
+        
         <div class="rfid-area" id="rfidArea">
-            <label style="font-weight: bold; color: #64748b; display: block; font-size: 14px;">🔑 UID Kartu</label>
-            <input type="text" id="uidInput" value="99AA88BB">
-            
-            <label style="font-weight: bold; color: #64748b; display: block; margin-top: 15px; font-size: 14px;">⚖️ Berat Cucian (Kg)</label>
+            <label style="font-weight: bold; color: #64748b; display: block; font-size: 14px;">⚖️ Isi Berat Cucian Dulu (Kg)</label>
             <input type="number" id="beratInput" value="3.0" min="0.5" step="0.1">
             
-            <button class="btn-tap" onclick="simulasikanTap()">TAP KARTU SEKARANG</button>
+            <p class="waiting-text" style="margin-top: 15px; margin-bottom: 0;">⏳ Menunggu scan kartu di Wokwi...</p>
         </div>
+
         <button id="btnStop" class="btn-stop" onclick="hentikanMesin()">SELESAI MENCUCI (STOP)</button>
     </div>
 
     <script>
         let intervalMesin = null;
 
-	// RADAR PENANGKAP SINYAL WOKWI
+        // RADAR PENANGKAP SINYAL WOKWI
         setInterval(async () => {
             // Jangan mengecek kalau layar sedang menampilkan "MEMPROSES" atau Mesin sudah nyala
             if (document.getElementById('rfidArea').style.display === 'none') return; 
@@ -61,23 +65,24 @@
                 const res = await fetch('/api/iot/rfid_scan');
                 const result = await res.json();
                 
-                // Jika ada UID yang ditangkap dari server
+                // Jika ada UID yang ditangkap dari server (berasal dari Wokwi)
                 if (result.uid && result.uid !== "") {
-                    // Isi form secara otomatis
-                    document.getElementById('uidInput').value = result.uid;
-                    // Tekan tombol secara virtual!
-                    simulasikanTap(); 
+                    // Langsung jalankan proses dengan UID tersebut
+                    simulasikanTap(result.uid); 
                 }
             } catch(e) {}
         }, 1000); // Mengecek setiap 1 detik
 
-        async function simulasikanTap() {
-            const uid = document.getElementById('uidInput').value.trim();
+        // Fungsi diubah untuk menerima UID sebagai parameter
+        async function simulasikanTap(uidDariWokwi) {
             const berat = document.getElementById('beratInput').value.trim();
             const lcdText = document.getElementById('lcdText');
             const lcdSub = document.getElementById('lcdSub');
             
-            if(!berat || berat <= 0) { alert("Masukkan berat cucian!"); return; }
+            if(!berat || berat <= 0) { 
+                alert("Harap isi berat cucian terlebih dahulu sebelum tap kartu di Wokwi!"); 
+                return; 
+            }
 
             lcdText.innerText = "MEMPROSES...";
             lcdSub.innerText = "Menghitung...";
@@ -85,7 +90,7 @@
             try {
                 const res = await fetch('/api/iot/tap', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ rfid_uid: uid, berat_kg: berat })
+                    body: JSON.stringify({ rfid_uid: uidDariWokwi, berat_kg: berat })
                 });
                 
                 const result = await res.json();
@@ -108,7 +113,6 @@
                     setTimeout(resetLayar, 4000);
                 }
             } catch (err) {
-                // INI AKAN MENAMPILKAN ERROR ASLINYA DI LAYAR
                 lcdText.innerText = "ERROR SERVER!";
                 lcdSub.innerText = "Cek terminal Node.js\ndi VS Code kamu.";
                 console.error("Detail Error:", err);
