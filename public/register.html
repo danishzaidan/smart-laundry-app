@@ -4,92 +4,327 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrasi Kartu - Smart Laundry</title>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            /* Default (Dark Theme) */
+            --primary: #2563eb; 
+            --primary-dark: #1d4ed8; 
+            --bg: #090d16;
+            --bg-radial: radial-gradient(circle at bottom left, #0b1120, #030712);
+            --card: rgba(15, 23, 42, 0.5); 
+            --card-border: rgba(255, 255, 255, 0.06);
+            --card-hover-border: rgba(56, 189, 248, 0.2);
+            --text-main: #f8fafc; 
+            --text-sub: #94a3b8;
+            --success: #10b981; 
+            --danger: #ef4444; 
+            --sidebar: #0d1321;
+            --sidebar-border: rgba(255, 255, 255, 0.05);
+            --sidebar-btn-hover: rgba(255, 255, 255, 0.05);
+            --sidebar-btn-active: rgba(37, 99, 235, 0.15);
+            --user-profile-bg: rgba(30, 41, 59, 0.4);
+            --user-profile-border: rgba(255, 255, 255, 0.05);
+            --menu-btn-bg: rgba(30, 41, 59, 0.5);
+            --menu-btn-border: rgba(255, 255, 255, 0.1);
+            --menu-btn-text: #f8fafc;
+            --card-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+            --card-shadow-hover: 0 15px 35px -5px rgba(0,0,0,0.6);
+            --accent-color: #38bdf8;
+            --input-bg: rgba(30, 41, 59, 0.4);
+            --input-border: rgba(255, 255, 255, 0.1);
+        }
+
+        :root.light-theme {
+            /* Light Theme */
+            --bg: #f8fafc;
+            --bg-radial: radial-gradient(circle at bottom left, #f1f5f9, #f8fafc);
+            --card: rgba(255, 255, 255, 0.85);
+            --card-border: rgba(203, 213, 225, 0.8);
+            --card-hover-border: rgba(37, 99, 235, 0.4);
+            --text-main: #0f172a;
+            --text-sub: #475569;
+            --sidebar: #1e293b;
+            --sidebar-border: rgba(0, 0, 0, 0.08);
+            --sidebar-btn-hover: rgba(255, 255, 255, 0.08);
+            --sidebar-btn-active: rgba(37, 99, 235, 0.12);
+            --user-profile-bg: rgba(15, 23, 42, 0.06);
+            --user-profile-border: rgba(15, 23, 42, 0.05);
+            --menu-btn-bg: #ffffff;
+            --menu-btn-border: rgba(203, 213, 225, 0.8);
+            --menu-btn-text: #0f172a;
+            --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+            --card-shadow-hover: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.08);
+            --accent-color: #2563eb;
+            --input-bg: rgba(255, 255, 255, 0.85);
+            --input-border: rgba(203, 213, 225, 0.8);
+        }
+
         body { 
-            font-family: 'Segoe UI', sans-serif; 
-            background: #f8fafc; 
+            font-family: 'Outfit', sans-serif; 
+            background: var(--bg-radial);
+            color: var(--text-main); 
             margin: 0; 
             display: flex; 
             height: 100vh; 
-            overflow: hidden; /* Mencegah double scroll saat animasi */
+            overflow: hidden; 
+            transition: background 0.3s ease, color 0.3s ease;
         }
         
         /* --- GAYA SIDEBAR --- */
         .sidebar { 
             width: 260px; 
             box-sizing: border-box; 
-            background: #0f172a; 
+            background-color: var(--sidebar); 
             color: white; 
             padding: 25px 15px; 
             display: flex; 
             flex-direction: column; 
             flex-shrink: 0;
-            transition: margin-left 0.3s ease, left 0.3s ease;
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), left 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, border-color 0.3s ease;
             position: relative;
             z-index: 1000;
+            border-right: 1px solid var(--sidebar-border);
+            overflow-y: auto;
         }
 
-        /* Mode Desktop: Sembunyikan sidebar ke kiri */
         .sidebar.hide-desktop { margin-left: -260px; }
 
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        .sidebar-header h2 { margin: 0; color: #38bdf8; font-size: 22px; }
+        .sidebar-header h2 { margin: 0; color: #38bdf8; font-size: 22px; font-weight: 700; }
         
-        /* Tombol silang untuk HP */
         .close-sidebar-btn { background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; display: none; }
 
-        .user-info { background: #1e293b; padding: 12px; border-radius: 8px; margin-bottom: 25px; font-size: 14px; }
-        
-        /* Tombol di dalam sidebar (Diubah jadi sidebar-btn agar tidak bentrok) */
-        .sidebar-btn { 
-            width: 100%; padding: 12px 15px; margin-bottom: 10px; background: transparent; color: white; 
-            border: 1px solid #334155; border-radius: 8px; text-align: left; cursor: pointer; font-size: 15px; font-weight: 600;
+        .user-info { 
+            background: var(--user-profile-bg); 
+            border: 1px solid var(--user-profile-border);
+            padding: 12px 15px; 
+            border-radius: 10px; 
+            margin-bottom: 25px; 
+            font-size: 14px; 
+            transition: all 0.3s ease;
         }
-        .sidebar-btn:hover, .sidebar-btn.active { background: #1e293b; border-color: #38bdf8; border-left: 4px solid #38bdf8; }
-        .logout-btn { margin-top: auto; background: #ef4444; border: none; font-weight: bold; }
+        
+        .sidebar-btn { 
+            width: 100%; 
+            padding: 12px 15px; 
+            margin-bottom: 10px; 
+            background: transparent; 
+            color: #94a3b8; 
+            border: 1px solid var(--sidebar-border); 
+            border-radius: 8px; 
+            text-align: left; 
+            cursor: pointer; 
+            font-size: 15px; 
+            font-weight: 600;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+        .sidebar-btn:hover { 
+            background-color: var(--sidebar-btn-hover); 
+            color: white; 
+        }
+        .sidebar-btn.active { 
+            background-color: var(--sidebar-btn-active); 
+            color: var(--accent-color); 
+            border-color: var(--accent-color);
+            border-left: 4px solid var(--accent-color); 
+        }
+        
+        .logout-btn { 
+            margin-top: auto; 
+            background: rgba(244, 63, 94, 0.1); 
+            border: 1px solid rgba(244, 63, 94, 0.2); 
+            color: var(--danger); 
+            padding: 12px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+        .logout-btn:hover {
+            background: rgba(244, 63, 94, 0.2);
+            box-shadow: 0 0 15px rgba(244, 63, 94, 0.1);
+        }
         
         /* --- GAYA KONTEN UTAMA --- */
-        .content { flex: 1; padding: 30px; overflow-y: auto; color: #1e293b; transition: all 0.3s ease; box-sizing: border-box; width: 100%; }
-        
-        /* Header untuk membungkus Garis Tiga & Judul */
-        .header { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; }
-        .header h2 { margin: 0; font-size: 24px; }
-
-        /* Tombol Garis Tiga (Hamburger) */
-        .menu-btn {
-            background: #ffffff; border: 1px solid #cbd5e1; color: #1e293b; font-size: 24px;
-            cursor: pointer; padding: 6px 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            flex-shrink: 0; transition: 0.2s;
+        .content { 
+            flex: 1; 
+            padding: 30px; 
+            overflow-y: auto; 
+            color: var(--text-main); 
+            transition: all 0.3s ease; 
+            box-sizing: border-box; 
+            width: 100%; 
         }
-        .menu-btn:hover { background: #f1f5f9; }
-
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .grid-1-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; } /* Diubah jadi 1fr 1fr agar seimbang */
         
-        input { width: 100%; padding: 12px; margin: 8px 0 15px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 15px;}
-        .btn-submit { width: 100%; padding: 14px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; }
-        .btn-submit:hover { background: #1d4ed8; }
+        .content::-webkit-scrollbar {
+            width: 6px;
+        }
+        .content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
         
-        .panduan-list p { color: #475569; margin-bottom: 12px; line-height: 1.6; }
+        .header { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; }
+        .header h2 { margin: 0; font-size: 24px; font-weight: 700; }
+        
+        .menu-btn {
+            background: var(--menu-btn-bg); 
+            border: 1px solid var(--menu-btn-border); 
+            color: var(--menu-btn-text); 
+            font-size: 20px;
+            cursor: pointer; 
+            padding: 8px 14px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+            flex-shrink: 0; 
+            transition: all 0.2s ease, background-color 0.3s ease, border-color 0.3s ease;
+        }
+        .menu-btn:hover { 
+            background: var(--menu-btn-bg); 
+            border-color: var(--accent-color);
+        }
 
-        /* --- MODE LAYAR HP (MOBILE) --- */
-        @media (max-width: 768px) {
+        .card { 
+            background: var(--card); 
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--card-border);
+            padding: 25px; 
+            border-radius: 14px; 
+            box-shadow: var(--card-shadow); 
+            margin-bottom: 20px; 
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--card-shadow-hover);
+            border-color: var(--card-hover-border);
+        }
+        
+        .grid-1-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        
+        label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-sub);
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input { 
+            width: 100%; 
+            padding: 14px 16px; 
+            margin: 8px 0 20px 0; 
+            box-sizing: border-box; 
+            background: var(--input-bg);
+            border: 1px solid var(--input-border); 
+            border-radius: 10px; 
+            color: var(--text-main);
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+            background: var(--input-bg);
+        }
+        
+        .btn-submit { 
+            width: 100%; 
+            padding: 14px; 
+            background: linear-gradient(135deg, #2563eb, #1d4ed8); 
+            color: white; 
+            border: none; 
+            border-radius: 10px; 
+            font-weight: 700; 
+            font-size: 16px; 
+            font-family: inherit;
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+        }
+        .btn-submit:hover { 
+            background: linear-gradient(135deg, #3b82f6, #2563eb); 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+        }
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+        
+        .panduan-list p { color: var(--text-sub); margin-bottom: 12px; line-height: 1.6; }
+        .panduan-list b { color: var(--text-main); }
+
+        #msgBox {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-align: center;
+            border: 1px solid transparent;
+        }
+
+        /* --- MOBILE SIDEBAR BACKDROP --- */
+        .sidebar-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .sidebar-backdrop.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* --- MODE LAYAR HP & TABLET (MOBILE) --- */
+        @media (max-width: 992px) {
             .sidebar { 
-                position: fixed; height: 100vh; left: -260px; margin-left: 0; top: 0;
+                position: fixed; 
+                height: 100vh; 
+                left: -260px; 
+                margin-left: 0; 
+                top: 0;
             }
-            .sidebar.show-mobile { left: 0; box-shadow: 10px 0 20px rgba(0,0,0,0.5); }
+            .sidebar.show-mobile { 
+                left: 0; 
+                box-shadow: 10px 0 30px rgba(0,0,0,0.6); 
+            }
             .close-sidebar-btn { display: block; }
             
-            .content { padding: 15px; }
+            .content { padding: 20px 15px; }
             .grid-1-2 { grid-template-columns: 1fr; gap: 15px; }
         }
     </style>
 </head>
 <body>
 
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+
     <div class="sidebar">
         <div class="sidebar-header">
-            <h2>🌀 Laundry</h2>
+            <h2>🌀 Smart Laundry</h2>
             <button class="close-sidebar-btn" onclick="toggleSidebar()">✖</button>
         </div>
         <div class="user-info">
@@ -98,6 +333,7 @@
         </div>
         <button class="sidebar-btn" onclick="window.location.href='/topup'">💳 Kasir & Top-Up</button>
         <button class="sidebar-btn active" onclick="window.location.href='/register'">👤 Registrasi Kartu</button>
+        <button class="sidebar-btn" onclick="toggleTheme()">🌓 Ganti Tema</button>
         <button class="sidebar-btn logout-btn" onclick="logout()">🚪 Logout</button>
     </div>
 
@@ -109,13 +345,13 @@
         
         <div class="grid-1-2">
             <div class="card">
-                <h3 style="margin-top: 0; color: #1e293b;">📝 Daftar Kartu Baru</h3>
+                <h3 style="margin-top: 0;">📝 Daftar Kartu Baru</h3>
                 <div id="msgBox" style="padding: 12px; border-radius: 8px; display: none; margin-bottom: 15px; font-weight: bold; text-align: center;"></div>
                 <form id="registerForm">
-                    <label style="font-weight: 600; color: #475569;">UID Kartu RFID</label>
+                    <label style="font-weight: 600;">UID Kartu RFID</label>
                     <input type="text" id="uid" placeholder="Contoh: A1B2C3D4" required>
                     
-                    <label style="font-weight: 600; color: #475569;">Nama Lengkap Pelanggan</label>
+                    <label style="font-weight: 600;">Nama Lengkap Pelanggan</label>
                     <input type="text" id="namaPelanggan" placeholder="Masukkan nama pelanggan" required>
                     
                     <button type="submit" class="btn-submit">DAFTARKAN KARTU</button>
@@ -123,13 +359,13 @@
             </div>
             
             <div class="card panduan-list">
-                <h3 style="margin-top: 0; color: #1e293b;">📌 Panduan Pendaftaran</h3>
+                <h3 style="margin-top: 0;">📌 Panduan Pendaftaran</h3>
                 <p><b>1.</b> Tap kartu kosong pada alat pemindai (Hardware / Simulator) untuk mendapatkan kode UID.</p>
                 <p><b>2.</b> Masukkan kode UID tersebut ke dalam kolom yang tersedia.</p>
                 <p><b>3.</b> Ketikkan nama lengkap pelanggan yang akan menggunakan kartu ini.</p>
                 <p><b>4.</b> Klik tombol <b>DAFTARKAN KARTU</b>.</p>
-                <div style="background: #fffbeb; padding: 10px; border-left: 4px solid #f59e0b; border-radius: 4px; margin-top: 15px;">
-                    <b style="color: #b45309;">Penting:</b> Saldo awal kartu baru adalah Rp 0. Harap arahkan pelanggan untuk mengisi saldo di menu <b>Kasir & Top-Up</b> setelah kartu berhasil didaftarkan.
+                <div style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid #f59e0b; border-radius: 4px; padding: 12px; margin-top: 15px; color: #fbbf24;">
+                    <b style="color: #fbbf24;">Penting:</b> Saldo awal kartu baru adalah Rp 0. Harap arahkan pelanggan untuk mengisi saldo di menu <b>Kasir & Top-Up</b> setelah kartu berhasil didaftarkan.
                 </div>
             </div>
         </div>
@@ -143,11 +379,31 @@
 
         function logout() { localStorage.clear(); window.location.href = '/login'; }
 
+        // THEME MANAGER
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            if (savedTheme === 'light') {
+                document.documentElement.classList.add('light-theme');
+            } else {
+                document.documentElement.classList.remove('light-theme');
+            }
+        }
+
+        function toggleTheme() {
+            const isLight = document.documentElement.classList.toggle('light-theme');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        }
+
+        // Run immediately
+        initTheme();
+
         // FUNGSI ANIMASI SIDEBAR
         function toggleSidebar() {
             const sidebar = document.querySelector('.sidebar');
-            if (window.innerWidth <= 768) {
+            const backdrop = document.getElementById('sidebarBackdrop');
+            if (window.innerWidth <= 992) {
                 sidebar.classList.toggle('show-mobile'); // Mode HP
+                backdrop.classList.toggle('show', sidebar.classList.contains('show-mobile'));
             } else {
                 sidebar.classList.toggle('hide-desktop'); // Mode Laptop
             }

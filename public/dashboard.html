@@ -4,73 +4,272 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Owner - Smart Laundry</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --primary: #2563eb; --primary-dark: #1d4ed8; --bg: #f8fafc;
-            --card: #ffffff; --text-main: #1e293b; --text-sub: #64748b;
-            --success: #10b981; --danger: #ef4444; --sidebar: #0f172a;
+            /* Default (Dark Theme) */
+            --primary: #2563eb; 
+            --primary-dark: #1d4ed8; 
+            --bg: #090d16;
+            --bg-radial: radial-gradient(circle at bottom left, #0b1120, #030712);
+            --card: rgba(15, 23, 42, 0.5); 
+            --card-border: rgba(255, 255, 255, 0.06);
+            --card-hover-border: rgba(56, 189, 248, 0.2);
+            --text-main: #f8fafc; 
+            --text-sub: #94a3b8;
+            --success: #10b981; 
+            --danger: #ef4444; 
+            --sidebar: #0d1321;
+            --sidebar-border: rgba(255, 255, 255, 0.05);
+            --sidebar-btn-hover: rgba(255, 255, 255, 0.05);
+            --sidebar-btn-active: rgba(37, 99, 235, 0.15);
+            --user-profile-bg: rgba(30, 41, 59, 0.4);
+            --user-profile-border: rgba(255, 255, 255, 0.05);
+            --menu-btn-bg: rgba(30, 41, 59, 0.5);
+            --menu-btn-border: rgba(255, 255, 255, 0.1);
+            --menu-btn-text: #f8fafc;
+            --card-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+            --card-shadow-hover: 0 15px 35px -5px rgba(0,0,0,0.6);
+            --accent-color: #38bdf8;
+            --reset-btn-bg: rgba(239, 68, 68, 0.15);
+            --reset-btn-border: rgba(239, 68, 68, 0.3);
+            --reset-btn-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+        }
+
+        :root.light-theme {
+            /* Light Theme */
+            --bg: #f8fafc;
+            --bg-radial: radial-gradient(circle at bottom left, #f1f5f9, #f8fafc);
+            --card: rgba(255, 255, 255, 0.85);
+            --card-border: rgba(203, 213, 225, 0.8);
+            --card-hover-border: rgba(37, 99, 235, 0.4);
+            --text-main: #0f172a;
+            --text-sub: #475569;
+            --sidebar: #1e293b;
+            --sidebar-border: rgba(0, 0, 0, 0.08);
+            --sidebar-btn-hover: rgba(255, 255, 255, 0.08);
+            --sidebar-btn-active: rgba(37, 99, 235, 0.12);
+            --user-profile-bg: rgba(15, 23, 42, 0.06);
+            --user-profile-border: rgba(15, 23, 42, 0.05);
+            --menu-btn-bg: #ffffff;
+            --menu-btn-border: rgba(203, 213, 225, 0.8);
+            --menu-btn-text: #0f172a;
+            --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+            --card-shadow-hover: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.08);
+            --accent-color: #2563eb;
+            --reset-btn-bg: rgba(239, 68, 68, 0.08);
+            --reset-btn-border: rgba(239, 68, 68, 0.2);
+            --reset-btn-shadow: none;
         }
 
         body { 
-            font-family: 'Segoe UI', system-ui, sans-serif; 
-            background-color: var(--bg); 
+            font-family: 'Outfit', sans-serif; 
+            background: var(--bg-radial);
             color: var(--text-main); 
             margin: 0; 
             display: flex; 
             height: 100vh; 
             overflow: hidden; 
+            transition: background 0.3s ease, color 0.3s ease;
         }
         
         /* --- SIDEBAR STYLE --- */
         .sidebar { 
-            width: 260px; box-sizing: border-box; background-color: var(--sidebar); color: white; 
-            padding: 25px 15px; display: flex; flex-direction: column; flex-shrink: 0; 
-            transition: margin-left 0.3s ease, left 0.3s ease; position: relative; z-index: 1000;
+            width: 260px; 
+            box-sizing: border-box; 
+            background-color: var(--sidebar); 
+            color: white; 
+            padding: 25px 15px; 
+            display: flex; 
+            flex-direction: column; 
+            flex-shrink: 0; 
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), left 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, border-color 0.3s ease; 
+            position: relative; 
+            z-index: 1000;
+            border-right: 1px solid var(--sidebar-border);
+            overflow-y: auto;
         }
         .sidebar.hide-desktop { margin-left: -260px; }
 
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .sidebar-header h2 { color: #38bdf8; margin: 0; font-size: 22px; }
+        .sidebar-header h2 { color: #38bdf8; margin: 0; font-size: 22px; font-weight: 700; }
         .close-sidebar-btn { background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; display: none; }
 
-        .user-profile { background: #1e293b; padding: 12px; border-radius: 8px; margin-bottom: 25px; }
+        .user-profile { 
+            background: var(--user-profile-bg); 
+            border: 1px solid var(--user-profile-border);
+            padding: 12px 15px; 
+            border-radius: 10px; 
+            margin-bottom: 25px; 
+            transition: all 0.3s ease;
+        }
         
         .sidebar-btn {
-            background: none; border: none; color: #94a3b8; padding: 12px 15px;
-            text-align: left; width: 100%; font-size: 15px; font-weight: 600;
-            cursor: pointer; border-radius: 8px; margin-bottom: 8px; transition: 0.2s;
+            background: none; 
+            border: none; 
+            color: #94a3b8; 
+            padding: 12px 15px;
+            text-align: left; 
+            width: 100%; 
+            font-size: 15px; 
+            font-weight: 600;
+            cursor: pointer; 
+            border-radius: 8px; 
+            margin-bottom: 8px; 
+            transition: all 0.2s ease;
+            font-family: inherit;
         }
-        .sidebar-btn:hover, .sidebar-btn.active { background-color: #1e293b; color: white; border-left: 4px solid #38bdf8; }
-        .logout-btn { margin-top: auto; background: #27272a; color: var(--danger); border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .sidebar-btn:hover { 
+            background-color: var(--sidebar-btn-hover); 
+            color: white; 
+        }
+        .sidebar-btn.active { 
+            background-color: var(--sidebar-btn-active); 
+            color: var(--accent-color); 
+            border-left: 4px solid var(--accent-color); 
+        }
+        
+        .logout-btn { 
+            margin-top: auto; 
+            background: rgba(244, 63, 94, 0.1); 
+            border: 1px solid rgba(244, 63, 94, 0.2); 
+            color: var(--danger); 
+            padding: 12px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+        .logout-btn:hover {
+            background: rgba(244, 63, 94, 0.2);
+            box-shadow: 0 0 15px rgba(244, 63, 94, 0.1);
+        }
 
         /* --- CONTENT STYLE --- */
-        .main-content { flex: 1; padding: 30px; overflow-y: auto; box-sizing: border-box; width: 100%; transition: all 0.3s ease; }
+        .main-content { 
+            flex: 1; 
+            padding: 30px; 
+            overflow-y: auto; 
+            box-sizing: border-box; 
+            width: 100%; 
+            transition: all 0.3s ease; 
+        }
         
+        .main-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        .main-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .main-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        .main-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
         .header-left { display: flex; align-items: center; gap: 15px; }
         
         .menu-btn {
-            background: #ffffff; border: 1px solid #cbd5e1; color: #1e293b; font-size: 24px;
-            cursor: pointer; padding: 6px 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0; transition: 0.2s;
+            background: var(--menu-btn-bg); 
+            border: 1px solid var(--menu-btn-border); 
+            color: var(--menu-btn-text); 
+            font-size: 20px;
+            cursor: pointer; 
+            padding: 8px 14px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+            flex-shrink: 0; 
+            transition: all 0.2s ease, background-color 0.3s ease, border-color 0.3s ease;
         }
-        .menu-btn:hover { background: #f1f5f9; }
+        .menu-btn:hover { 
+            background: var(--menu-btn-bg); 
+            border-color: var(--accent-color);
+        }
 
-        .card { background: var(--card); padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .card { 
+            background: var(--card); 
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--card-border);
+            padding: 25px; 
+            border-radius: 14px; 
+            box-shadow: var(--card-shadow); 
+            margin-bottom: 20px; 
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--card-shadow-hover);
+            border-color: var(--card-hover-border);
+        }
+
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         
-        .val-large { font-size: 48px; font-weight: 800; color: var(--primary); margin: 10px 0; }
-        .unit { font-size: 20px; color: var(--text-sub); font-weight: normal; }
-        .badge { padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 14px; }
-        .bg-success { background: #d1fae5; color: var(--success); }
-        .bg-danger { background: #fee2e2; color: var(--danger); }
+        .val-large { font-size: 48px; font-weight: 800; color: var(--accent-color); margin: 10px 0; transition: color 0.3s ease; }
+        .unit { font-size: 20px; color: var(--text-sub); font-weight: normal; transition: color 0.3s ease; }
+        .badge { 
+            padding: 6px 16px; 
+            border-radius: 20px; 
+            font-weight: 700; 
+            font-size: 13px; 
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .bg-success { 
+            background: rgba(16, 185, 129, 0.15); 
+            color: #10b981; 
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+        }
+        .bg-danger { 
+            background: var(--reset-btn-bg); 
+            color: #ef4444; 
+            border: 1px solid var(--reset-btn-border);
+            box-shadow: var(--reset-btn-shadow);
+            transition: all 0.3s ease;
+        }
 
-        /* --- MOBILE --- */
-        @media (max-width: 768px) {
-            .sidebar { position: fixed; height: 100vh; left: -260px; margin-left: 0; top: 0; }
-            .sidebar.show-mobile { left: 0; box-shadow: 10px 0 20px rgba(0,0,0,0.5); }
+        /* --- MOBILE SIDEBAR BACKDROP --- */
+        .sidebar-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .sidebar-backdrop.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* --- MOBILE & TABLET RESPONSIVE --- */
+        @media (max-width: 992px) {
+            .sidebar { 
+                position: fixed; 
+                height: 100vh; 
+                left: -260px; 
+                margin-left: 0; 
+                top: 0; 
+            }
+            .sidebar.show-mobile { 
+                left: 0; 
+                box-shadow: 10px 0 30px rgba(0,0,0,0.6); 
+            }
             .close-sidebar-btn { display: block; }
-            .main-content { padding: 15px; }
+            .main-content { padding: 20px 15px; }
             .grid-2 { grid-template-columns: 1fr; gap: 15px; }
             .header { align-items: flex-start; }
             .val-large { font-size: 36px; }
@@ -78,6 +277,8 @@
     </style>
 </head>
 <body>
+
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
 
     <div class="sidebar">
         <div class="sidebar-header">
@@ -92,6 +293,7 @@
         <button class="sidebar-btn active" id="btnMonitoring" onclick="switchTab('monitoring')">📈 Monitoring Real-time</button>
         <button class="sidebar-btn" id="btnReport" onclick="switchTab('report')">💸 Laporan Pengeluaran</button>
         
+        <button class="sidebar-btn" onclick="toggleTheme()">🌓 Ganti Tema</button>
         <button class="logout-btn" onclick="logout()">🚪 Logout</button>
     </div>
 
@@ -171,11 +373,50 @@
         if (role !== 'owner') { window.location.href = '/login'; }
         function logout() { localStorage.clear(); window.location.href = '/login'; }
 
+        // THEME MANAGER
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            const isLight = savedTheme === 'light';
+            if (isLight) {
+                document.documentElement.classList.add('light-theme');
+            } else {
+                document.documentElement.classList.remove('light-theme');
+            }
+        }
+
+        function toggleTheme() {
+            const isLight = document.documentElement.classList.toggle('light-theme');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            updateChartColors(isLight);
+        }
+
+        function updateChartColors(isLight) {
+            if (!powerChart) return;
+            const textColor = isLight ? '#0f172a' : '#94a3b8';
+            const gridColor = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.05)';
+            
+            powerChart.options.plugins.legend.labels.color = isLight ? '#0f172a' : '#f8fafc';
+            powerChart.options.scales.x.grid.color = gridColor;
+            powerChart.options.scales.x.ticks.color = textColor;
+            powerChart.options.scales.y.grid.color = gridColor;
+            powerChart.options.scales.y.ticks.color = textColor;
+            powerChart.update();
+        }
+
+        // Run immediately to prevent flash of unstyled theme
+        initTheme();
+
         // ANIMASI SIDEBAR & TAB
         function toggleSidebar() {
             const sidebar = document.querySelector('.sidebar');
-            if (window.innerWidth <= 768) { sidebar.classList.toggle('show-mobile'); } 
-            else { sidebar.classList.toggle('hide-desktop'); }
+            const backdrop = document.getElementById('sidebarBackdrop');
+            if (window.innerWidth <= 992) { 
+                sidebar.classList.toggle('show-mobile'); 
+                backdrop.classList.toggle('show', sidebar.classList.contains('show-mobile'));
+            } 
+            else { 
+                sidebar.classList.toggle('hide-desktop'); 
+            }
         }
 
         function switchTab(tabId) {
@@ -183,7 +424,13 @@
             document.getElementById('report-tab').style.display = tabId === 'report' ? 'block' : 'none';
             document.getElementById('btnMonitoring').classList.toggle('active', tabId === 'monitoring');
             document.getElementById('btnReport').classList.toggle('active', tabId === 'report');
-            if (window.innerWidth <= 768) document.querySelector('.sidebar').classList.remove('show-mobile');
+            
+            if (window.innerWidth <= 992) {
+                const sidebar = document.querySelector('.sidebar');
+                const backdrop = document.getElementById('sidebarBackdrop');
+                sidebar.classList.remove('show-mobile');
+                backdrop.classList.remove('show');
+            }
         }
 
         // KONFIGURASI TARIF (Bisa disesuaikan)
@@ -237,10 +484,34 @@
             type: 'line',
             data: {
                 labels: ['', '', '', '', '', '', '', '', '', ''],
-                datasets: [{ label: 'Watt', data: [0,0,0,0,0,0,0,0,0,0], borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', fill: true, tension: 0.4 }]
+                datasets: [{ 
+                    label: 'Daya (Watt)', 
+                    data: [0,0,0,0,0,0,0,0,0,0], 
+                    borderColor: '#38bdf8', 
+                    backgroundColor: 'rgba(56, 189, 248, 0.1)', 
+                    fill: true, 
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointBackgroundColor: '#38bdf8'
+                }]
             },
-            options: { responsive: true, animation: { duration: 0 } }
+            options: { 
+                responsive: true, 
+                animation: { duration: 0 },
+                plugins: {
+                    legend: {
+                        labels: { color: '#f8fafc', font: { family: 'Outfit', size: 12 } }
+                    }
+                },
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { family: 'Outfit' } } },
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { family: 'Outfit' } } }
+                }
+            }
         });
+
+        // Update chart colors on initial load depending on stored theme
+        updateChartColors(document.documentElement.classList.contains('light-theme'));
 
         // TARIK DATA DARI SENSOR (Setiap 2 Detik)
         setInterval(async () => {

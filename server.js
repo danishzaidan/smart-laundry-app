@@ -157,15 +157,19 @@ app.post('/api/iot/tap', (req, res) => {
             }
 
             db.query("INSERT INTO tb_transaksi (rfid_uid, berat_kg, total_biaya, status_pembayaran) VALUES (?, ?, ?, ?)",
-            [rfid_uid, berat_kg, BIAYA_CUCI, 'LUNAS']);
-
-            console.log(`✅ [IZIN DIBERIKAN] Mesin menyala untuk ${user.nama_user}. Berat: ${berat_kg}kg | Biaya: Rp ${BIAYA_CUCI} | Sisa Saldo: Rp ${sisaSaldo}`);
-            
-            res.status(200).json({
-                status: 'izinkan',
-                pesan: `Silakan mencuci, ${user.nama_user}`,
-                total_biaya: BIAYA_CUCI,
-                sisa_saldo: sisaSaldo
+            [rfid_uid, berat_kg, BIAYA_CUCI, 'LUNAS'], (errTrx) => {
+                if (errTrx) {
+                    console.error('❌ Gagal mencatat transaksi:', errTrx);
+                }
+                
+                console.log(`✅ [IZIN DIBERIKAN] Mesin menyala untuk ${user.nama_user}. Berat: ${berat_kg}kg | Biaya: Rp ${BIAYA_CUCI} | Sisa Saldo: Rp ${sisaSaldo}`);
+                
+                res.status(200).json({
+                    status: 'izinkan',
+                    pesan: `Silakan mencuci, ${user.nama_user}`,
+                    total_biaya: BIAYA_CUCI,
+                    sisa_saldo: sisaSaldo
+                });
             });
         });
     });

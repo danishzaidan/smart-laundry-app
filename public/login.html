@@ -4,72 +4,110 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Smart Laundry</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { 
-            font-family: 'Segoe UI', sans-serif; 
-            background: #0f172a; 
-            color: white; 
+            font-family: 'Outfit', sans-serif; 
+            background: radial-gradient(circle at top right, #1e1b4b, #090d16); 
+            color: #f8fafc; 
             display: flex; 
             justify-content: center; 
             align-items: center; 
-            min-height: 100vh; /* Diubah dari height ke min-height agar tidak rusak saat keyboard HP muncul */
+            min-height: 100vh; 
             margin: 0; 
-            padding: 20px; /* Agar kotak tidak menempel ketat di pinggir layar HP */
+            padding: 20px; 
             box-sizing: border-box;
         }
         
         .card { 
-            background: white; 
+            background: rgba(15, 23, 42, 0.6); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             padding: 40px 30px; 
-            border-radius: 12px; 
-            color: #1e293b; 
-            width: 100%; /* Lebar dibuat fleksibel */
-            max-width: 350px; /* Tapi dibatasi maksimal 350px agar tetap rapi di PC */
+            border-radius: 16px; 
+            width: 100%; 
+            max-width: 380px; 
             text-align: center; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5); /* Tambahan bayangan biar lebih estetik */
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5); 
             box-sizing: border-box;
+        }
+        
+        h2 {
+            margin-top: 0;
+            font-weight: 700;
+            font-size: 28px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #38bdf8, #2563eb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         
         input { 
             width: 100%; 
-            padding: 12px 15px; 
-            margin: 10px 0 20px; 
+            padding: 14px 16px; 
+            margin: 8px 0 20px 0; 
             box-sizing: border-box; 
-            border: 1px solid #cbd5e1; 
-            border-radius: 8px; 
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            border-radius: 10px; 
+            color: #f8fafc;
             font-size: 15px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #38bdf8;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+            background: rgba(30, 41, 59, 0.7);
         }
         
         button { 
             width: 100%; 
             padding: 14px; 
-            background: #2563eb; 
+            background: linear-gradient(135deg, #2563eb, #1d4ed8); 
             color: white; 
             border: none; 
-            border-radius: 8px; 
-            font-weight: bold; 
+            border-radius: 10px; 
+            font-weight: 600; 
             font-size: 16px;
+            font-family: inherit;
             cursor: pointer; 
-            transition: background 0.2s;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
         }
         
-        button:hover { background: #1d4ed8; }
+        button:hover { 
+            background: linear-gradient(135deg, #3b82f6, #2563eb); 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
         
         #errorMsg {
-            background: #fee2e2;
-            color: #ef4444;
-            padding: 10px;
-            border-radius: 6px;
-            font-weight: bold;
+            background: rgba(244, 63, 94, 0.15);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            color: #f43f5e;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 500;
             font-size: 14px;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h2 style="margin-top: 0;">Smart Laundry</h2>
-        <p style="color:#64748b; font-size: 14px; margin-bottom:25px;">Silakan masuk ke akun Anda</p>
+        <h2>Smart Laundry</h2>
+        <p style="color: #94a3b8; font-size: 14px; margin-bottom: 25px;">Silakan masuk ke akun Anda</p>
         
         <div id="errorMsg" style="display:none; margin-bottom:15px;"></div>
         
