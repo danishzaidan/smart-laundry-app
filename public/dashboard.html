@@ -94,6 +94,10 @@
         }
         .sidebar.hide-desktop { margin-left: -260px; }
 
+        .sidebar-header, .user-profile, .sidebar-btn, .logout-btn {
+            flex-shrink: 0;
+        }
+
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
         .sidebar-header h2 { color: #38bdf8; margin: 0; font-size: 22px; font-weight: 700; }
         .close-sidebar-btn { background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; display: none; }
@@ -260,6 +264,7 @@
             .sidebar { 
                 position: fixed; 
                 height: 100vh; 
+                height: 100dvh;
                 left: -260px; 
                 margin-left: 0; 
                 top: 0; 
