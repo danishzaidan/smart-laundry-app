@@ -283,16 +283,30 @@
         /* --- VISUALISASI MULTI MESIN CUCI --- */
         .machine-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
             margin-top: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .machine-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .machine-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
         }
         
         .machine-card {
             background: rgba(15, 23, 42, 0.2);
             border: 1px solid var(--card-border);
             border-radius: 12px;
-            padding: 15px;
+            padding: 20px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -306,31 +320,12 @@
         
         .machine-card:hover {
             transform: translateY(-3px);
-            border-color: var(--card-hover-border);
+            border-color: var(--accent-color);
             background: rgba(15, 23, 42, 0.35);
             box-shadow: var(--card-shadow-hover);
         }
         .light-theme .machine-card:hover {
             background: rgba(255, 255, 255, 0.85);
-            border-color: var(--card-hover-border);
-        }
-        
-        .machine-card.active {
-            border-color: var(--accent-color);
-            background: rgba(37, 99, 235, 0.08);
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.15);
-        }
-        .light-theme .machine-card.active {
-            background: rgba(37, 99, 235, 0.05);
-            border-color: var(--primary);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
-        }
-
-        .machine-card.disabled {
-            opacity: 0.7;
-        }
-        .machine-card.disabled:hover {
-            opacity: 0.95;
         }
         
         .machine-card-header {
@@ -342,7 +337,7 @@
         
         .machine-title {
             font-weight: 700;
-            font-size: 14px;
+            font-size: 15px;
             color: var(--text-main);
         }
         
@@ -356,16 +351,23 @@
         }
         
         .bg-offline {
-            background: rgba(100, 116, 139, 0.15);
+            background: rgba(100, 116, 139, 0.1);
             color: #94a3b8;
-            border: 1px solid rgba(100, 116, 139, 0.3);
+            border: 1px solid rgba(100, 116, 139, 0.25);
         }
         
         .machine-meta {
-            margin-top: 8px;
-            font-size: 11px;
+            margin-top: 10px;
+            font-size: 12px;
             color: var(--text-sub);
             font-weight: 500;
+        }
+        .machine-type {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+        .light-theme .machine-type {
+            color: var(--primary);
         }
 
         /* --- MINI WASHING MACHINE GRAPHIC --- */
@@ -373,12 +375,12 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 12px 0;
+            margin: 15px 0;
         }
 
         .washing-machine {
-            width: 80px;
-            height: 100px;
+            width: 85px;
+            height: 105px;
             background: linear-gradient(135deg, #1e293b, #0f172a);
             border: 3px solid #475569;
             border-radius: 12px;
@@ -394,14 +396,6 @@
             background: linear-gradient(135deg, #f1f5f9, #cbd5e1);
             border-color: #94a3b8;
             box-shadow: inset 0 1px 2px rgba(255,255,255,0.5), 0 3px 8px rgba(0, 0, 0, 0.08);
-        }
-
-        .machine-card.active .washing-machine {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
-        }
-        .light-theme .machine-card.active .washing-machine {
-            border-color: var(--primary);
         }
 
         .washing-machine.offline {
@@ -430,8 +424,8 @@
         }
 
         .machine-display {
-            width: 28px;
-            height: 9px;
+            width: 30px;
+            height: 10px;
             background: #020617;
             border: 1px solid rgba(56, 189, 248, 0.2);
             border-radius: 2px;
@@ -474,8 +468,8 @@
 
         /* Machine Door */
         .machine-door-outer {
-            width: 50px;
-            height: 50px;
+            width: 52px;
+            height: 52px;
             border-radius: 50%;
             border: 3px solid #475569;
             margin: 0 auto;
@@ -491,20 +485,14 @@
             border-color: #94a3b8;
             background: rgba(255, 255, 255, 0.4);
         }
-        .machine-card.active .machine-door-outer {
-            border-color: var(--accent-color);
-        }
-        .light-theme .machine-card.active .machine-door-outer {
-            border-color: var(--primary);
-        }
         .washing-machine.offline .machine-door-outer {
             border-color: #334155;
             background: rgba(15, 23, 42, 0.9);
         }
 
         .machine-door-inner {
-            width: 36px;
-            height: 36px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             border: 1px solid rgba(255, 255, 255, 0.05);
             position: relative;
@@ -600,143 +588,247 @@
     <div class="main-content">
         
         <div id="monitoring-tab">
-            <div class="header">
-                <div class="header-left">
-                    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-                    <div>
-                        <h1 style="margin:0; font-size: 24px;">Dashboard Monitoring</h1>
-                        <p style="color: var(--text-sub); margin: 5px 0 0 0; font-size: 14px;">Pantau status mesin cuci secara langsung</p>
+            <!-- 1. VIEW DAFTAR MESIN CUCI (Grid 6 Mesin) -->
+            <div id="machine-list-view">
+                <div class="header">
+                    <div class="header-left">
+                        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+                        <div>
+                            <h1 style="margin:0; font-size: 24px;">Dashboard Monitoring</h1>
+                            <p style="color: var(--text-sub); margin: 5px 0 0 0; font-size: 14px;">Pilih unit mesin cuci untuk memantau detail konsumsi dan status</p>
+                        </div>
                     </div>
                 </div>
-                <div id="statusBadge" class="badge bg-danger">MESIN STANDBY</div>
+
+                <div class="card" style="padding: 25px; border-left: 4px solid var(--accent-color);">
+                    <h3 style="margin-top:0; margin-bottom: 20px; color: var(--text-sub); display: flex; align-items: center; gap: 8px;">
+                        🌀 Status Unit Mesin Cuci
+                    </h3>
+                    <div class="machine-grid">
+                        <!-- Mesin 1 (Connected / Active) -->
+                        <div class="machine-card" id="machine-card-1" onclick="selectMachine(1)">
+                            <div class="machine-card-header">
+                                <span class="machine-title">Mesin 01</span>
+                                <span class="machine-badge bg-danger" id="machine-badge-1">Standby</span>
+                            </div>
+                            <div class="machine-visual-container">
+                                <div class="washing-machine" id="machine-visual-1">
+                                    <div class="machine-panel">
+                                        <div class="machine-display" id="machine-display-1">STBY</div>
+                                        <div class="machine-leds">
+                                            <div class="machine-led red active-pulse" id="led-red-1" style="background: #ef4444;"></div>
+                                            <div class="machine-led green" id="led-green-1"></div>
+                                        </div>
+                                    </div>
+                                    <div class="machine-door-outer">
+                                        <div class="machine-door-inner">
+                                            <div class="machine-water"></div>
+                                            <div class="machine-drum-details"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="machine-meta">
+                                <span class="machine-type">Online (Utama)</span>
+                                <div style="font-size: 10px; color: var(--text-sub); margin-top: 3px;">Kapasitas: 10 Kg</div>
+                            </div>
+                        </div>
+
+                        <!-- Mesin 2 -->
+                        <div class="machine-card" id="machine-card-2" onclick="selectMachine(2)">
+                            <div class="machine-card-header">
+                                <span class="machine-title">Mesin 02</span>
+                                <span class="machine-badge bg-offline">Offline</span>
+                            </div>
+                            <div class="machine-visual-container">
+                                <div class="washing-machine offline" id="machine-visual-2">
+                                    <div class="machine-panel">
+                                        <div class="machine-display">OFF</div>
+                                        <div class="machine-leds">
+                                            <div class="machine-led red" style="background: #ef4444; opacity: 0.5;"></div>
+                                            <div class="machine-led"></div>
+                                        </div>
+                                    </div>
+                                    <div class="machine-door-outer">
+                                        <div class="machine-door-inner">
+                                            <div class="machine-water"></div>
+                                            <div class="machine-drum-details"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="machine-meta">
+                                <span class="machine-type">Offline</span>
+                                <div style="font-size: 10px; color: var(--text-sub); margin-top: 3px;">Kapasitas: 10 Kg</div>
+                            </div>
+                        </div>
+
+                        <!-- Mesin 3 -->
+                        <div class="machine-card" id="machine-card-3" onclick="selectMachine(3)">
+                            <div class="machine-card-header">
+                                <span class="machine-title">Mesin 03</span>
+                                <span class="machine-badge bg-offline">Offline</span>
+                            </div>
+                            <div class="machine-visual-container">
+                                <div class="washing-machine offline" id="machine-visual-3">
+                                    <div class="machine-panel">
+                                        <div class="machine-display">OFF</div>
+                                        <div class="machine-leds">
+                                            <div class="machine-led red" style="background: #ef4444; opacity: 0.5;"></div>
+                                            <div class="machine-led"></div>
+                                        </div>
+                                    </div>
+                                    <div class="machine-door-outer">
+                                        <div class="machine-door-inner">
+                                            <div class="machine-water"></div>
+                                            <div class="machine-drum-details"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="machine-meta">
+                                <span class="machine-type">Offline</span>
+                                <div style="font-size: 10px; color: var(--text-sub); margin-top: 3px;">Kapasitas: 10 Kg</div>
+                            </div>
+                        </div>
+
+                        <!-- Mesin 4 -->
+                        <div class="machine-card" id="machine-card-4" onclick="selectMachine(4)">
+                            <div class="machine-card-header">
+                                <span class="machine-title">Mesin 04</span>
+                                <span class="machine-badge bg-offline">Offline</span>
+                            </div>
+                            <div class="machine-visual-container">
+                                <div class="washing-machine offline" id="machine-visual-4">
+                                    <div class="machine-panel">
+                                        <div class="machine-display">OFF</div>
+                                        <div class="machine-leds">
+                                            <div class="machine-led red" style="background: #ef4444; opacity: 0.5;"></div>
+                                            <div class="machine-led"></div>
+                                        </div>
+                                    </div>
+                                    <div class="machine-door-outer">
+                                        <div class="machine-door-inner">
+                                            <div class="machine-water"></div>
+                                            <div class="machine-drum-details"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="machine-meta">
+                                <span class="machine-type">Offline</span>
+                                <div style="font-size: 10px; color: var(--text-sub); margin-top: 3px;">Kapasitas: 10 Kg</div>
+                            </div>
+                        </div>
+
+                        <!-- Mesin 5 -->
+                        <div class="machine-card" id="machine-card-5" onclick="selectMachine(5)">
+                            <div class="machine-card-header">
+                                <span class="machine-title">Mesin 05</span>
+                                <span class="machine-badge bg-offline">Offline</span>
+                            </div>
+                            <div class="machine-visual-container">
+                                <div class="washing-machine offline" id="machine-visual-5">
+                                    <div class="machine-panel">
+                                        <div class="machine-display">OFF</div>
+                                        <div class="machine-leds">
+                                            <div class="machine-led red" style="background: #ef4444; opacity: 0.5;"></div>
+                                            <div class="machine-led"></div>
+                                        </div>
+                                    </div>
+                                    <div class="machine-door-outer">
+                                        <div class="machine-door-inner">
+                                            <div class="machine-water"></div>
+                                            <div class="machine-drum-details"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="machine-meta">
+                                <span class="machine-type">Offline</span>
+                                <div style="font-size: 10px; color: var(--text-sub); margin-top: 3px;">Kapasitas: 10 Kg</div>
+                            </div>
+                        </div>
+
+                        <!-- Mesin 6 -->
+                        <div class="machine-card" id="machine-card-6" onclick="selectMachine(6)">
+                            <div class="machine-card-header">
+                                <span class="machine-title">Mesin 06</span>
+                                <span class="machine-badge bg-offline">Offline</span>
+                            </div>
+                            <div class="machine-visual-container">
+                                <div class="washing-machine offline" id="machine-visual-6">
+                                    <div class="machine-panel">
+                                        <div class="machine-display">OFF</div>
+                                        <div class="machine-leds">
+                                            <div class="machine-led red" style="background: #ef4444; opacity: 0.5;"></div>
+                                            <div class="machine-led"></div>
+                                        </div>
+                                    </div>
+                                    <div class="machine-door-outer">
+                                        <div class="machine-door-inner">
+                                            <div class="machine-water"></div>
+                                            <div class="machine-drum-details"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="machine-meta">
+                                <span class="machine-type">Offline</span>
+                                <div style="font-size: 10px; color: var(--text-sub); margin-top: 3px;">Kapasitas: 10 Kg</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- SECTION DAFTAR MESIN CUCI -->
-            <div class="card" style="padding: 20px; border-left: 4px solid var(--accent-color);">
-                <h3 style="margin-top:0; margin-bottom: 15px; color: var(--text-sub); display: flex; align-items: center; gap: 8px;">
-                    🌀 Daftar Unit Mesin Cuci
-                </h3>
-                <div class="machine-grid">
-                    <!-- Mesin 1 (Connected / Active) -->
-                    <div class="machine-card active" id="machine-card-1" onclick="selectMachine(1)">
-                        <div class="machine-card-header">
-                            <span class="machine-title">Mesin 01</span>
-                            <span class="machine-badge bg-danger" id="machine-badge-1">Standby</span>
-                        </div>
-                        <div class="machine-visual-container">
-                            <div class="washing-machine" id="machine-visual-1">
-                                <div class="machine-panel">
-                                    <div class="machine-display" id="machine-display-1">STBY</div>
-                                    <div class="machine-leds">
-                                        <div class="machine-led red active-pulse" id="led-red-1" style="background: #ef4444;"></div>
-                                        <div class="machine-led green" id="led-green-1"></div>
-                                    </div>
-                                </div>
-                                <div class="machine-door-outer">
-                                    <div class="machine-door-inner">
-                                        <div class="machine-water"></div>
-                                        <div class="machine-drum-details"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="machine-meta">
-                            <span class="machine-type">Utama (Connected)</span>
+            <!-- 2. VIEW DETAIL PEMANTAUAN (Muncul penuh saat mesin diklik) -->
+            <div id="machine-detail-view" style="display: none;">
+                <div class="header">
+                    <div class="header-left">
+                        <button class="menu-btn" style="padding: 8px 14px;" onclick="backToList()">← Kembali ke Daftar Mesin</button>
+                        <div>
+                            <h1 style="margin:0; font-size: 24px;" id="detailMachineTitle">Detail Monitoring - Mesin 01</h1>
+                            <p style="color: var(--text-sub); margin: 5px 0 0 0; font-size: 14px;">Data konsumsi energi dan debit air secara real-time</p>
                         </div>
                     </div>
-
-                    <!-- Mesin 2 (Offline / Pajangan) -->
-                    <div class="machine-card disabled" id="machine-card-2" onclick="selectMachine(2)">
-                        <div class="machine-card-header">
-                            <span class="machine-title">Mesin 02</span>
-                            <span class="machine-badge bg-offline">Offline</span>
-                        </div>
-                        <div class="machine-visual-container">
-                            <div class="washing-machine offline" id="machine-visual-2">
-                                <div class="machine-panel">
-                                    <div class="machine-display">OFF</div>
-                                    <div class="machine-leds">
-                                        <div class="machine-led red" style="background: #ef4444; opacity: 0.5;"></div>
-                                        <div class="machine-led"></div>
-                                    </div>
-                                </div>
-                                <div class="machine-door-outer">
-                                    <div class="machine-door-inner">
-                                        <div class="machine-water"></div>
-                                        <div class="machine-drum-details"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="machine-meta">
-                            <span class="machine-type">Pajangan Only</span>
-                        </div>
-                    </div>
-
-                    <!-- Mesin 3 (Offline / Pajangan) -->
-                    <div class="machine-card disabled" id="machine-card-3" onclick="selectMachine(3)">
-                        <div class="machine-card-header">
-                            <span class="machine-title">Mesin 03</span>
-                            <span class="machine-badge bg-offline">Offline</span>
-                        </div>
-                        <div class="machine-visual-container">
-                            <div class="washing-machine offline" id="machine-visual-3">
-                                <div class="machine-panel">
-                                    <div class="machine-display">OFF</div>
-                                    <div class="machine-leds">
-                                        <div class="machine-led red" style="background: #ef4444; opacity: 0.5;"></div>
-                                        <div class="machine-led"></div>
-                                    </div>
-                                </div>
-                                <div class="machine-door-outer">
-                                    <div class="machine-door-inner">
-                                        <div class="machine-water"></div>
-                                        <div class="machine-drum-details"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="machine-meta">
-                            <span class="machine-type">Pajangan Only</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- DETAIL MONITORING CONTAINER -->
-            <div id="monitoring-details">
-                <!-- Live Details (Machine 1) -->
-                <div id="live-details-panel">
-                    <div class="grid-2">
-                        <div class="card">
-                            <div style="font-weight: 600; color: var(--text-sub);">⚡ KONSUMSI DAYA SAAT INI</div>
-                            <div class="val-large"><span id="wattVal">0.00</span> <span class="unit">W</span></div>
-                            <div style="border-top: 1px solid var(--card-border); padding-top: 10px; color: var(--text-sub);">Akumulasi: <strong id="kwhVal">0.0000</strong> kWh</div>
-                        </div>
-                        <div class="card">
-                            <div style="font-weight: 600; color: var(--text-sub);">💧 DEBIT AIR SAAT INI</div>
-                            <div class="val-large"><span id="flowVal">0.00</span> <span class="unit">L/m</span></div>
-                            <div style="border-top: 1px solid var(--card-border); padding-top: 10px; color: var(--text-sub);">Akumulasi: <strong id="totalAirVal">0</strong> Liter</div>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <h3 style="margin-top:0; color: var(--text-sub);">Grafik Penggunaan Listrik (Real-time) - Mesin 01</h3>
-                        <canvas id="powerChart" height="100"></canvas>
-                    </div>
+                    <div id="statusBadge" class="badge bg-danger">MESIN STANDBY</div>
                 </div>
 
-                <!-- Offline Details (Machine 2 / 3) -->
-                <div id="offline-details-panel" style="display: none;">
-                    <div class="card" style="text-align: center; padding: 40px 20px; border-left: 5px solid #64748b;">
-                        <div style="font-size: 56px; margin-bottom: 15px; filter: drop-shadow(0 0 10px rgba(0,0,0,0.3));">🔌</div>
-                        <h2 style="margin: 0 0 10px 0; color: var(--text-main);" id="offline-panel-title">Mesin 02 Tidak Terhubung</h2>
-                        <p style="color: var(--text-sub); max-width: 500px; margin: 0 auto 20px auto; font-size: 14px; line-height: 1.6;">
-                            Mesin ini merupakan visual pajangan (simulasi offline) dan tidak terhubung ke sensor IoT. Silakan pilih <strong>Mesin 01</strong> untuk memantau data real-time dari simulator.
-                        </p>
-                        <button class="badge bg-success" style="border: none; padding: 10px 20px; font-size: 12px; cursor: pointer; border-radius: 8px;" onclick="selectMachine(1)">
-                            🔌 Hubungkan ke Mesin 01
-                        </button>
+                <div id="monitoring-details">
+                    <!-- Live Details (Machine 1) -->
+                    <div id="live-details-panel">
+                        <div class="grid-2">
+                            <div class="card">
+                                <div style="font-weight: 600; color: var(--text-sub);">⚡ KONSUMSI DAYA SAAT INI</div>
+                                <div class="val-large"><span id="wattVal">0.00</span> <span class="unit">W</span></div>
+                                <div style="border-top: 1px solid var(--card-border); padding-top: 10px; color: var(--text-sub);">Akumulasi: <strong id="kwhVal">0.0000</strong> kWh</div>
+                            </div>
+                            <div class="card">
+                                <div style="font-weight: 600; color: var(--text-sub);">💧 DEBIT AIR SAAT INI</div>
+                                <div class="val-large"><span id="flowVal">0.00</span> <span class="unit">L/m</span></div>
+                                <div style="border-top: 1px solid var(--card-border); padding-top: 10px; color: var(--text-sub);">Akumulasi: <strong id="totalAirVal">0</strong> Liter</div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3 style="margin-top:0; color: var(--text-sub);">Grafik Penggunaan Listrik (Real-time) - Mesin 01</h3>
+                            <canvas id="powerChart" height="100"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Offline Details (Machine 2-6) -->
+                    <div id="offline-details-panel" style="display: none;">
+                        <div class="card" style="text-align: center; padding: 50px 30px; border-left: 5px solid #ef4444;">
+                            <div style="font-size: 64px; margin-bottom: 20px; filter: drop-shadow(0 0 10px rgba(0,0,0,0.15));">🔌</div>
+                            <h2 style="margin: 0 0 10px 0; color: var(--text-main);" id="offline-panel-title">Mesin 02 Offline</h2>
+                            <p style="color: var(--text-sub); max-width: 500px; margin: 0 auto 20px auto; font-size: 15px; line-height: 1.6;">
+                                Modul pemantauan IoT pada mesin ini sedang tidak aktif atau memerlukan konfigurasi hardware. Data telemetri real-time tidak dapat ditampilkan.
+                            </p>
+                            <button class="badge bg-success" style="border: none; padding: 12px 24px; font-size: 13px; cursor: pointer; border-radius: 8px; font-family: inherit; font-weight: 700;" onclick="selectMachine(1)">
+                                🔌 Lihat Monitoring Mesin 01 (Online)
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -837,6 +929,10 @@
             document.getElementById('btnMonitoring').classList.toggle('active', tabId === 'monitoring');
             document.getElementById('btnReport').classList.toggle('active', tabId === 'report');
             
+            if (tabId === 'monitoring') {
+                backToList();
+            }
+
             if (window.innerWidth <= 992) {
                 const sidebar = document.querySelector('.sidebar');
                 const backdrop = document.getElementById('sidebarBackdrop');
@@ -948,14 +1044,26 @@
             }
         }
 
+        function backToList() {
+            document.getElementById('machine-detail-view').style.display = 'none';
+            document.getElementById('machine-list-view').style.display = 'block';
+        }
+
         function selectMachine(machineId) {
             activeMachineId = machineId;
             
-            // Perbarui class active di card
+            // Perbarui class active di card daftar mesin
             document.querySelectorAll('.machine-card').forEach(card => {
                 card.classList.remove('active');
             });
             document.getElementById(`machine-card-${machineId}`).classList.add('active');
+
+            // Sembunyikan daftar mesin dan tampilkan detail pemantauan mesin
+            document.getElementById('machine-list-view').style.display = 'none';
+            document.getElementById('machine-detail-view').style.display = 'block';
+
+            // Update judul di header detail
+            document.getElementById('detailMachineTitle').innerText = `Detail Monitoring - Mesin 0${machineId}`;
 
             const livePanel = document.getElementById('live-details-panel');
             const offlinePanel = document.getElementById('offline-details-panel');
@@ -968,7 +1076,7 @@
             } else {
                 livePanel.style.display = 'none';
                 offlinePanel.style.display = 'block';
-                document.getElementById('offline-panel-title').innerText = `Mesin 0${machineId} Tidak Terhubung`;
+                document.getElementById('offline-panel-title').innerText = `Mesin 0${machineId} Offline`;
                 
                 // Set badge status header ke OFFLINE
                 badge.className = 'badge bg-danger'; 
@@ -1029,7 +1137,7 @@
                         ledGreen.style.background = '#475569';
                     }
 
-                    // Update badge status utama di header jika Mesin 01 sedang terpilih
+                    // Update badge status utama di header detail jika Mesin 01 sedang terpilih
                     if (activeMachineId === 1) {
                         updateStatusBadgeForMachine1();
                     }
