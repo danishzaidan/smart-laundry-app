@@ -280,6 +280,34 @@
             .val-large { font-size: 36px; }
         }
 
+        /* --- TOMBOL KEMBALI SLEEK --- */
+        .back-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            font-family: inherit;
+            margin-right: 15px;
+        }
+        .light-theme .back-btn {
+            background: rgba(15, 23, 42, 0.05);
+        }
+        .back-btn:hover {
+            background: rgba(37, 99, 235, 0.1);
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+            transform: translateX(-3px);
+        }
+
         /* --- VISUALISASI MULTI MESIN CUCI --- */
         .machine-grid {
             display: grid;
@@ -786,7 +814,7 @@
             <div id="machine-detail-view" style="display: none;">
                 <div class="header">
                     <div class="header-left">
-                        <button class="menu-btn" style="padding: 8px 14px;" onclick="backToList()">← Kembali ke Daftar Mesin</button>
+                        <button class="back-btn" onclick="backToList()">← Kembali</button>
                         <div>
                             <h1 style="margin:0; font-size: 24px;" id="detailMachineTitle">Detail Monitoring - Mesin 01</h1>
                             <p style="color: var(--text-sub); margin: 5px 0 0 0; font-size: 14px;">Data konsumsi energi dan debit air secara real-time</p>
